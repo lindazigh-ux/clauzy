@@ -1,7 +1,13 @@
 import Link from 'next/link'
 
-import { LIBELLES_FAMILLES, NOMBRE_TOTAL_CONTROLES, REPARTITION_ATTENDUE } from '@/domain/controles/types'
-import type { Famille } from '@/domain/controles/types'
+import {
+  Famille,
+  LIBELLE_FAMILLE,
+  NOMBRE_CONTROLES,
+  REFERENTIEL,
+  aUnRepliAssurance,
+  parFamille,
+} from '@/domain/controles'
 
 import styles from './accueil.module.css'
 
@@ -12,9 +18,18 @@ import styles from './accueil.module.css'
  * volontairement l'ordre impose par le brief — nommer le probleme, prouver la
  * confidentialite au-dessus de la ligne de flottaison — sans anticiper le
  * reste, qui merite d'etre ecrit pour de vrai.
+ *
+ * Tous les chiffres affiches sont derives du referentiel : la page ne peut pas
+ * annoncer autre chose que ce que le produit applique reellement.
  */
 export default function Accueil() {
-  const familles = Object.entries(REPARTITION_ATTENDUE) as [Famille, number][]
+  const familles = Object.values(Famille).map((famille) => ({
+    famille,
+    libelle: LIBELLE_FAMILLE[famille],
+    effectif: parFamille(famille).length,
+  }))
+
+  const sansRepliAssurance = REFERENTIEL.filter((controle) => !aUnRepliAssurance(controle)).length
 
   return (
     <>
@@ -52,23 +67,33 @@ export default function Accueil() {
           </p>
         </div>
 
-        <h2>{NOMBRE_TOTAL_CONTROLES} contrôles, sept familles</h2>
+        <h2>
+          {NOMBRE_CONTROLES} contrôles, {familles.length} familles
+        </h2>
         <p>
-          Chaque analyse applique les {NOMBRE_TOTAL_CONTROLES} contrôles, sans exception. Un
-          contrôle que le moteur ne sait pas trancher n’est jamais masqué : il apparaît « à
-          vérifier manuellement ». Une checklist exhaustive vaut mieux qu’un rapport qui se tait.
+          Chaque analyse applique les {NOMBRE_CONTROLES} contrôles, sans exception. Un contrôle que
+          le moteur ne sait pas trancher n’est jamais masqué : il ressort « à vérifier
+          manuellement ». Une checklist exhaustive vaut mieux qu’un rapport qui se tait.
         </p>
 
         <div className={styles.grille}>
-          {familles.map(([famille, effectif]) => (
+          {familles.map(({ famille, libelle, effectif }) => (
             <article key={famille} className={styles.carte}>
-              <h3>{LIBELLES_FAMILLES[famille]}</h3>
+              <h3>{libelle}</h3>
               <p>
                 {effectif} contrôle{effectif > 1 ? 's' : ''}
               </p>
             </article>
           ))}
         </div>
+
+        <h2>On corrige le bail d’abord</h2>
+        <p>
+          Sur {sansRepliAssurance} de ces {NOMBRE_CONTROLES} contrôles, aucune police ne rattrape la
+          rédaction : le transfert est déséquilibré, ou la clause est de pure procédure. Le rapport
+          le dit explicitement plutôt que de laisser la ligne vide. L’adaptation du programme
+          d’assurance n’arrive qu’en second, si la négociation contractuelle échoue.
+        </p>
 
         <div className={styles.chantier}>
           <p>

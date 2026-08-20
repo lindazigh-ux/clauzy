@@ -10,14 +10,14 @@ produit et son implémentation.
 
 ---
 
-## État : lot L0 terminé
+## État : L0 terminé, référentiel des 40 contrôles intégré
 
 Le phasage est décrit au §12 du brief.
 
 | Lot | État |
 | --- | --- |
 | **L0** — squelette, tokens, couche réseau isolée, test anti-fuite | **terminé** |
-| L1 — import, segmentation, moteur des 40 contrôles | en attente du contenu métier du prototype |
+| **L1** — import, segmentation, moteur des 40 contrôles | référentiel intégré ; moteur à écrire |
 | L2 → L8 | à venir |
 
 ### Ce que L0 met en place
@@ -41,16 +41,60 @@ Le phasage est décrit au §12 du brief.
   invariants de non-régression du référentiel de contrôles.
 - **Le budget de performance** (§3, §14), mesuré et opposable en CI.
 
-### Ce qui manque pour démarrer L1
+### Le référentiel des 40 contrôles
 
-Le référentiel des 40 contrôles — l'actif principal du produit — est celui du
-prototype React + Vite. **Il n'est pas dans ce dépôt.** Il ne doit pas être
-réinventé : un contrôle approximatif est pire qu'un contrôle absent, puisqu'il
-engage le devoir de conseil.
+C'est l'actif principal du produit. Il est intégré **verbatim** dans
+`src/domain/controles/` — treize fichiers repris à l'octet près, sans
+reformatage ni réécriture, y compris leurs tests. Le contenu est le fruit d'un
+travail de praticienne : il ne se retouche pas au fil d'une refactorisation.
 
-`src/domain/controles/index.ts` est donc volontairement vide, et les invariants
-qui exigent le contenu apparaissent comme *ignorés* dans la sortie de test —
-jamais absents. Ils passeront au vert d'eux-mêmes une fois le contenu importé.
+Ce que le référentiel apporte, au-delà de ce que décrivait le brief :
+
+- **`Nature`** (`CROISEMENT`, `TRANSFERT_BAIL`, `DOUBLE`, `FORMALISME`) — ce
+  qu'une pièce d'assurance peut effectivement démontrer. Un contrôle
+  `TRANSFERT_BAIL` ou `FORMALISME` se conclut sur le document source seul : le
+  moteur ne doit jamais le laisser en `NON_DETECTE` au motif qu'aucune pièce
+  d'assurance n'a été fournie.
+- **`aUnRepliAssurance()`** — 19 contrôles n'ont pas de repli assurance, et
+  c'est une information, pas une lacune. Le rapport affiche
+  `MENTION_SANS_REPLI` plutôt qu'une ligne vide, qui serait lue comme un oubli.
+- **`squeletteResultats()`** — la garantie *mécanique* du §5.2 : la longueur du
+  tableau de résultats est fixée avant toute lecture de document. Un contrôle ne
+  peut pas disparaître du rapport, par construction. **Le moteur doit partir de
+  ce squelette** et se contenter de faire évoluer les statuts.
+- **`verifierReferentiel()`** — invariants levés à la première violation, dont
+  le format des identifiants et l'obligation du drapeau `i` sur chaque motif.
+- Des tests d'hygiène des détecteurs : garde-fou anti-ReDoS et plafond de 50 ms
+  par motif sur un texte long. Le parsing tourne dans un Worker, mais il reste
+  bloquant.
+
+### Écarts constatés entre le brief et le référentiel
+
+Le référentiel livré est plus récent que le §5.1 du brief et lui fait autorité
+sur le domaine — c'est lui que le produit exécute. `CLAUZY_BUILD.md` est
+conservé **verbatim**, sans correction silencieuse. Les écarts, à arbitrer :
+
+| Sujet | Brief §5.1 | Référentiel livré |
+| --- | --- | --- |
+| Familles | 7 | 10 |
+| Répartition | 5 / 5 / 4 / 8 / 7 / 3 / 8 | 3 / 7 / 4 / 4 / 4 / 5 / 2 / 3 / 6 / 2 |
+| Champs | `libelle`, `enjeu`, `actionBail`, `actionAssurance` | `titre`, `obligation`, `actionSource`, `actionCouverture?` |
+| En plus | — | `nature`, `responsable`, `baseJuridique?` |
+
+Le total reste 40, et le vocabulaire du référentiel est **plus conforme au §11**
+que celui du §5.1 : `actionSource` / `actionCouverture` et
+`detecteursObligation` / `detecteursCouverture` ne nomment jamais le bail. C'est
+la raison pour laquelle il n'existe pas de types `Obligation` / `Couverture`
+parallèles : le référentiel porte déjà ce vocabulaire, et un second modèle
+dériverait du premier.
+
+### Prochaine étape — le moteur (L1)
+
+Il reste à écrire : la segmentation du bail en articles et alinéas avec
+conservation des offsets, les extracteurs de valeurs (durées, montants,
+pourcentages, dates), le rapprochement et le seuil de confiance, le tout dans un
+Web Worker. Plus le corpus synthétique de 12 à 15 baux (§5.4) — **jamais un
+document client réel, même anonymisé.**
 
 ---
 
@@ -115,8 +159,11 @@ src/
     globals.css            tokens du design system (§8)
     securite/              page /securite (§2)
   domain/
-    types.ts               Obligation, Couverture, Rapprochement (§11)
-    controles/             référentiel des 40 contrôles (§5)
+    controles/             référentiel des 40 contrôles (§5) — repris verbatim
+      types.ts             Controle, Famille, Nature, Statut, Detecteur
+      01-*.ts … 10-*.ts    un fichier par famille
+      index.ts             REFERENTIEL, squeletteResultats(), verifierReferentiel()
+      referentiel.test.ts  protection de l'actif principal
   lib/
     net/                   unique surface réseau (§2)
 scripts/
