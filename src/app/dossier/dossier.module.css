@@ -1,0 +1,522 @@
+/* Poste de travail (brief §6, §8). */
+
+.poste {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.barre {
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.barreContenu {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--pas) * 4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.marque {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.reference {
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 2) calc(var(--pas) * 3);
+  min-width: 14ch;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.actions {
+  display: flex;
+  gap: calc(var(--pas) * 2);
+  flex-wrap: wrap;
+}
+
+.corps {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: calc(var(--pas) * 6) calc(var(--pas) * 5) calc(var(--pas) * 16);
+  display: grid;
+  gap: calc(var(--pas) * 6);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .corps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .corps {
+    padding: calc(var(--pas) * 4) calc(var(--pas) * 4) calc(var(--pas) * 12);
+  }
+}
+
+.colonne {
+  display: grid;
+  gap: calc(var(--pas) * 6);
+  min-width: 0;
+}
+
+/* --- boutons ------------------------------------------------------------ */
+
+.bouton,
+.boutonPrimaire,
+.boutonDiscret {
+  font: inherit;
+  font-weight: 600;
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 2.5) calc(var(--pas) * 4);
+  border: 1px solid var(--line-dark);
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.bouton:hover:not(:disabled),
+.boutonDiscret:hover:not(:disabled) {
+  background: var(--surface);
+}
+
+.boutonPrimaire {
+  background: var(--violet);
+  border-color: var(--violet);
+  color: #fff;
+}
+
+.boutonPrimaire:hover:not(:disabled) {
+  background: var(--violet-dark);
+  border-color: var(--violet-dark);
+}
+
+.boutonDiscret {
+  border-color: transparent;
+  padding: calc(var(--pas) * 1.5) calc(var(--pas) * 2.5);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.bouton:disabled,
+.boutonPrimaire:disabled,
+.boutonDiscret:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- cartes ------------------------------------------------------------- */
+
+.carte {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 5);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.carte > h2 {
+  font-size: 1.05rem;
+  margin-bottom: calc(var(--pas) * 4);
+}
+
+.carte > h2 > .compteur {
+  color: var(--faint);
+  font-weight: 500;
+  font-size: 0.85rem;
+  margin-left: calc(var(--pas) * 2);
+}
+
+.vide {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* --- import ------------------------------------------------------------- */
+
+.zoneDepot {
+  border: 2px dashed var(--line-dark);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 8) calc(var(--pas) * 5);
+  text-align: center;
+  background: var(--surface);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.zoneDepotActive {
+  border-color: var(--violet);
+  background: var(--violet-pale);
+}
+
+.zoneDepot p {
+  margin: 0 auto calc(var(--pas) * 3);
+  color: var(--muted);
+  max-width: 46ch;
+}
+
+.listeDocuments {
+  list-style: none;
+  margin: calc(var(--pas) * 4) 0 0;
+  padding: 0;
+  display: grid;
+  gap: calc(var(--pas) * 2);
+}
+
+.document {
+  display: flex;
+  gap: calc(var(--pas) * 3);
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3);
+  background: var(--bg);
+  flex-wrap: wrap;
+}
+
+.documentNom {
+  font-weight: 600;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.documentMeta {
+  color: var(--faint);
+  font-size: 0.8rem;
+}
+
+.roleSelect,
+.champ,
+.zoneTexte {
+  font: inherit;
+  border: 1px solid var(--line);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 2) calc(var(--pas) * 3);
+  background: var(--bg);
+  color: var(--ink);
+  width: 100%;
+}
+
+.zoneTexte {
+  min-height: 5.5rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.roleSelect {
+  width: auto;
+}
+
+/* --- avertissements ----------------------------------------------------- */
+
+.avertissement,
+.erreur {
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 4);
+  font-size: 0.9rem;
+  margin: calc(var(--pas) * 3) 0 0;
+}
+
+.avertissement {
+  background: var(--amber-soft);
+  border: 1px solid #f0dfbc;
+  color: var(--amber);
+}
+
+.erreur {
+  background: var(--red-soft);
+  border: 1px solid #f3ced2;
+  color: var(--red);
+}
+
+/* --- synthèse ----------------------------------------------------------- */
+
+.phrase {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  line-height: 1.5;
+  margin: 0 0 calc(var(--pas) * 4);
+}
+
+.compteurs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: calc(var(--pas) * 3);
+}
+
+.compteurCase {
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3);
+  border: 1px solid var(--line);
+  text-align: left;
+  background: var(--bg);
+  cursor: pointer;
+  font: inherit;
+}
+
+.compteurCase[aria-pressed='true'] {
+  border-color: var(--violet);
+  background: var(--violet-pale);
+}
+
+.compteurValeur {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.compteurLibelle {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: calc(var(--pas) * 1);
+}
+
+.mention {
+  margin: calc(var(--pas) * 4) 0 0;
+  font-size: 0.9rem;
+  color: var(--violet-dark);
+  font-weight: 600;
+}
+
+/* --- matrice ------------------------------------------------------------ */
+
+.matrice {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: calc(var(--pas) * 2);
+}
+
+.ligne {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  gap: calc(var(--pas) * 3);
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3);
+  cursor: pointer;
+}
+
+.ligne:hover {
+  background: var(--surface);
+}
+
+.ligne[aria-current='true'] {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 1px var(--violet);
+}
+
+/* NON_DETECTE doit être saillant, pas discret (brief §5.2). */
+.ligneNonDetectee {
+  border-left: 4px solid var(--blue-gray);
+  background: var(--blue-gray-soft);
+}
+
+.ligneEcartee {
+  opacity: 0.62;
+}
+
+.identifiant {
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.titreLigne {
+  font-weight: 600;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sousTitre {
+  display: block;
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.chiffre {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.etiquette {
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.etiquetteEcart {
+  background: var(--red-soft);
+  color: var(--red);
+  border-color: #f3ced2;
+}
+
+.etiquetteEcartMineur {
+  background: var(--amber-soft);
+  color: var(--amber);
+  border-color: #f0dfbc;
+}
+
+.etiquetteConforme {
+  background: var(--green-soft);
+  color: var(--green);
+  border-color: #cfe8dc;
+}
+
+.etiquetteAbsent {
+  background: var(--surface-2);
+  color: var(--muted);
+  border-color: var(--line);
+}
+
+.etiquetteNonDetecte {
+  background: var(--bg);
+  color: var(--blue-gray);
+  border-color: var(--blue-gray);
+}
+
+.marqueAjustee {
+  font-size: 0.7rem;
+  color: var(--violet-dark);
+  font-weight: 700;
+  margin-left: calc(var(--pas) * 2);
+}
+
+/* --- éditeur ------------------------------------------------------------ */
+
+.editeur {
+  display: grid;
+  gap: calc(var(--pas) * 4);
+}
+
+.editeurEnjeu {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.citation {
+  font-family: var(--serif);
+  font-style: italic;
+  border-left: 3px solid var(--violet-soft);
+  padding-left: calc(var(--pas) * 3);
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.diagnostic {
+  background: var(--surface);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.diagnostic ul {
+  margin: calc(var(--pas) * 2) 0 0;
+  padding-left: 1.1rem;
+}
+
+.champLabel {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: calc(var(--pas) * 1.5);
+}
+
+.rangee {
+  display: flex;
+  gap: calc(var(--pas) * 2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.listeSimple {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: calc(var(--pas) * 2);
+}
+
+.puce {
+  border: 1px solid var(--line);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3);
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--pas) * 3);
+  align-items: flex-start;
+}
+
+/* --- lecteur de document ------------------------------------------------ */
+
+.lecteur {
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 4);
+  background: var(--surface);
+  white-space: pre-wrap;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.selection {
+  background: var(--violet-pale);
+  border: 1px solid var(--violet-soft);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3);
+  margin-top: calc(var(--pas) * 3);
+  font-size: 0.88rem;
+}
+
+.selectionExtrait {
+  font-family: var(--serif);
+  font-style: italic;
+  display: block;
+  margin-bottom: calc(var(--pas) * 3);
+  color: var(--ink);
+}

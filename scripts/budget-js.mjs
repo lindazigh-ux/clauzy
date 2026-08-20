@@ -23,8 +23,23 @@ const RACINE = process.cwd()
 const PAGES = join(RACINE, '.next', 'server', 'app')
 const NEXT = join(RACINE, '.next')
 
-/** Interdits dans le bundle initial (brief §13) — chargement dynamique obligatoire. */
-const MOTEURS_DE_PARSING = ['pdfjs', 'mammoth', 'msgreader', 'docx', 'jszip', 'pdf-lib']
+/**
+ * Interdits dans le bundle initial (brief §13) — chargement dynamique obligatoire.
+ *
+ * On cherche des empreintes INTERNES aux bibliotheques, pas leur nom de paquet :
+ * l'application manipule legitimement les chaines « pdf », « docx » et « msg »
+ * — noms de format, attribut `accept`, libelles d'interface. Chercher le
+ * surnom du paquet ferait echouer le budget sur du texte a nous, et surtout
+ * habituerait a ignorer l'alerte.
+ */
+const MOTEURS_DE_PARSING = [
+  { nom: 'pdfjs-dist', empreintes: ['PDFWorker', 'Invalid PDF structure', 'GlobalWorkerOptions'] },
+  { nom: 'mammoth', empreintes: ['Could not find file in options', 'word/document.xml'] },
+  { nom: '@kenjiuno/msgreader', empreintes: ['__substg1.0_', '__nameid_version1.0'] },
+  { nom: 'jszip', empreintes: ['JSZip'] },
+  { nom: 'docx', empreintes: ['word/_rels/document.xml.rels'] },
+  { nom: 'pdf-lib', empreintes: ['PDFHexString'] },
+]
 
 const ko = (octets) => Math.round((octets / 1024) * 10) / 10
 
@@ -85,9 +100,11 @@ for (const { page, fichier } of pages) {
 
   for (const { src, texte } of contenus) {
     for (const moteur of MOTEURS_DE_PARSING) {
-      if (texte.includes(moteur)) {
+      const trouvee = moteur.empreintes.find((empreinte) => texte.includes(empreinte))
+      if (trouvee !== undefined) {
         console.error(
-          `  INTERDIT : « ${moteur} » est present dans ${src}, charge des le premier rendu de ${page}.\n` +
+          `  INTERDIT : « ${moteur.nom} » est present dans ${src}, charge des le premier rendu de ${page}.\n` +
+            `             Empreinte reperee : « ${trouvee} ».\n` +
             `             Les moteurs de parsing se chargent en import dynamique (brief §3, §13).`,
         )
         echec = true

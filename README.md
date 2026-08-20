@@ -17,8 +17,10 @@ Le phasage est décrit au §12 du brief.
 | Lot | État |
 | --- | --- |
 | **L0** — squelette, tokens, couche réseau isolée, test anti-fuite | **terminé** |
-| **L1** — segmentation, moteur des 40 contrôles, corpus | **moteur terminé** ; import de fichiers à brancher |
-| L2 → L8 | à venir |
+| **L1** — import, segmentation, moteur des 40 contrôles, corpus | **terminé** |
+| **L2** — poste de travail : édition, rattachement, observation, périmètre | **terminé** |
+| L3 — sauvegarde et rechargement `.clauzy` | à venir |
+| L4 → L8 | à venir |
 
 ### Ce que L0 met en place
 
@@ -150,17 +152,46 @@ interface gelée sans que personne ne le voie.
   lacunaire. **Le §5.4 en demande 12 à 15** : les six profils sont couverts, il
   reste à en décliner des variantes.
 
-### Lacunes de rappel connues
+### Lacunes de rappel
 
-Le corpus a mis au jour sept rédactions courantes que les motifs actuels ne
-reconnaissent pas — « Toutes **les** indemnités » (IND-01), « priment » au lieu
-de « prévaut » (ART-01), « sous huitaine » (FOR-01)…
+Le corpus a mis au jour sept rédactions courantes que les motifs d'origine ne
+reconnaissaient pas — « Toutes **les** indemnités » (IND-01), « priment » au
+lieu de « prévaut » (ART-01), « sous huitaine » (FOR-01)… Elles ont été
+arbitrées et les motifs élargis, chaque élargissement vérifié contre les 40 cas
+négatifs, qui passent tous.
 
-Elles ne sont **pas corrigées** : un motif ne se réécrit pas sans arbitrage, et
-un motif élargi produit des faux positifs, qui coûtent plus cher qu'un
-`NON_DETECTE`. Elles sont donc consignées dans `LACUNES_CONNUES` et verrouillées
-par un test : le jour où un motif est élargi, le test échoue et rappelle de
-retirer l'entrée. Une lacune connue et tracée vaut mieux qu'une lacune ignorée.
+Ces rédactions vivent désormais dans `VARIANTES_COUVERTES` : si un motif est un
+jour resserré pour réduire des faux positifs, c'est là que la perte de rappel
+apparaîtra, avec le détail de ce qui cesse d'être reconnu. `LACUNES_CONNUES`
+reste en place, vide, pour la prochaine lacune découverte et non encore
+arbitrée : consigner vaut mieux que masquer.
+
+### Le poste de travail (L2)
+
+`src/app/dossier/` et `src/domain/dossier/`. Clauzy n'est pas un pipeline
+automatique : c'est un outil que la professionnelle reprend à la main avant de
+livrer (§6).
+
+Les quatre gestes : **éditer** chaque ligne (analyse, gravité, rédaction
+proposée), **rattacher** un passage à un contrôle que le moteur n'a pas trouvé,
+**ajouter** une observation hors des 40 contrôles, **renseigner** le périmètre.
+
+Deux décisions structurent le domaine :
+
+- **Les ajustements sont rangés à part de la sortie du moteur.** Une analyse
+  prend une à deux heures ; importer une attestation en retard et relancer le
+  moteur ne doit jamais effacer ce travail. Le moteur écrit dans `analyse`, le
+  praticien dans `ajustements`, et `resultatsAffiches()` compose les deux.
+- **Un motif est exigé pour écarter un contrôle ou forcer son état.** Une
+  modification manuelle sans motif n'est pas opposable. Le contrôle écarté ne
+  disparaît pas pour autant : il reste dans les 40 lignes, marqué « écarté par
+  le praticien », motif à l'appui.
+
+Le rattachement manuel fait passer un contrôle de `NON_DETECTE` à `ECART`, et à
+`CONFORME` si une pièce est rattachée en regard. C'est le geste qui règle
+l'essentiel du problème des baux atypiques **sans toucher au moteur** — ce qui
+vaut infiniment mieux qu'élargir un motif et récolter des faux positifs sur
+tous les autres dossiers.
 
 ---
 
@@ -224,7 +255,10 @@ src/
   app/                     pages Next.js (App Router)
     globals.css            tokens du design system (§8)
     securite/              page /securite (§2)
+  app/
+    dossier/               poste de travail (§6)
   domain/
+    dossier/               état de session, ajustements, composition (§4, §6)
     moteur/                segmentation, extracteurs, confiance, moteur (§5.3)
     corpus/                corpus synthétique — jamais un document réel (§5.4)
     controles/             référentiel des 40 contrôles (§5) — repris verbatim
@@ -233,7 +267,8 @@ src/
       index.ts             REFERENTIEL, squeletteResultats(), verifierReferentiel()
       referentiel.test.ts  protection de l'actif principal
   lib/
-    analyse/               Web Worker d'analyse (§3)
+    analyse/               Web Worker : lecture et analyse (§3)
+    import/                PDF, Word, Outlook — en import dynamique (§3, §13)
     net/                   unique surface réseau (§2)
 scripts/
   budget-js.mjs            budget de performance (§3, §14)
