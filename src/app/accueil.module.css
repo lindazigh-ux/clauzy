@@ -1,5 +1,5 @@
 .entete {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--ligne);
   background: var(--bg);
 }
 
@@ -25,7 +25,7 @@
 .accroche {
   font-family: var(--serif);
   font-style: italic;
-  color: var(--violet-dark);
+  color: var(--accent-fort);
 }
 
 .chapo {
@@ -42,10 +42,10 @@
 
 .carte {
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--ligne);
   border-radius: var(--rayon-lg);
   padding: calc(var(--pas) * 5);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--ombre-fine);
 }
 
 .carte h3 {
@@ -59,8 +59,8 @@
 }
 
 .encadre {
-  background: var(--violet-pale);
-  border: 1px solid var(--violet-soft);
+  background: var(--accent-pale);
+  border: 1px solid var(--accent-doux);
   border-radius: var(--rayon-lg);
   padding: calc(var(--pas) * 5);
   margin: calc(var(--pas) * 8) 0;
@@ -71,7 +71,7 @@
 }
 
 .chantier {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--ligne);
   margin-top: calc(var(--pas) * 10);
   padding-top: calc(var(--pas) * 6);
   color: var(--muted);
@@ -79,7 +79,7 @@
 }
 
 .pied {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--ligne);
   color: var(--faint);
   font-size: 0.85rem;
   padding: calc(var(--pas) * 6) calc(var(--pas) * 5);

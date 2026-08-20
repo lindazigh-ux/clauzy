@@ -1,12 +1,16 @@
 'use client'
 
-import { LIBELLE_STATUT } from '@/domain/controles'
+import { LIBELLE_STATUT, Statut } from '@/domain/controles'
 import {
   MENTION_LIMITE,
+  calendrier,
+  enFrancais,
+  formulerProchaineAction,
   preconisations,
   resultatsAffiches,
   synthetiser,
   type Dossier,
+  type LigneRapport,
 } from '@/domain/dossier'
 
 import styles from '../rapport.module.css'
@@ -37,7 +41,17 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
   const sansObjet = lignes.filter((ligne) => ligne.sansObjet)
   const ecartes = lignes.filter((ligne) => ligne.ecarte)
   const courriels = dossier.documents.filter((document) => document.courriel !== null)
+  const jalons = calendrier(dossier.suivi)
   const couleur = `#${dossier.cabinet.couleur}`
+
+  /** L'etat porte sa couleur jusque sur le papier. */
+  const classeEtat = (ligne: LigneRapport): string => {
+    if (ligne.ecarte) return styles.etatAbsent ?? ''
+    if (ligne.statut === Statut.ECART) return styles.etatEcart ?? ''
+    if (ligne.statut === Statut.CONFORME) return styles.etatConforme ?? ''
+    if (ligne.statut === Statut.NON_DETECTE) return styles.etatVerifier ?? ''
+    return styles.etatAbsent ?? ''
+  }
 
   const champ = (libelle: string, valeur: string) =>
     valeur.trim().length === 0 ? null : (
@@ -249,7 +263,9 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
               <tr key={ligne.controle.id}>
                 <td className={styles.reference}>{ligne.controle.id}</td>
                 <td>{ligne.controle.titre}</td>
-                <td>{ligne.ecarte ? 'Écarté par le praticien' : LIBELLE_STATUT[ligne.statut]}</td>
+                <td className={classeEtat(ligne)}>
+                  {ligne.ecarte ? 'Écarté par le praticien' : LIBELLE_STATUT[ligne.statut]}
+                </td>
                 <td>{ligne.resumeEcart ?? '—'}</td>
               </tr>
             ))}
@@ -257,25 +273,51 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
         </table>
       </section>
 
-      {/* 6. Suivi d’attestation et prochaine action (§7). */}
+      {/* 6. Suivi d’attestation et prochaine action datée (§7). */}
       <section className={styles.section}>
         <h2>Suivi d’attestation</h2>
-        {courriels.length === 0 ? (
-          <p className={styles.discret}>
-            Aucun courriel d’attestation n’a été importé. Le suivi de relance se renseigne à la
-            main.
-          </p>
-        ) : (
-          <ul>
-            {courriels.map((document) => (
-              <li key={document.id}>
-                {document.courriel?.objet ?? 'Objet non renseigné'} —{' '}
-                {document.courriel?.envoyeLe === null || document.courriel === null
-                  ? 'date d’envoi illisible, à saisir à la main'
-                  : `envoyé le ${dateLongue(document.courriel.envoyeLe)}`}
-              </li>
-            ))}
-          </ul>
+
+        <p className={styles.prochaine}>{formulerProchaineAction(dossier.suivi)}</p>
+
+        {dossier.suivi.destinataire.trim().length > 0 && (
+          <p className={styles.discret}>Demande adressée à {dossier.suivi.destinataire}.</p>
+        )}
+
+        {jalons.length > 0 && (
+          <>
+            <h3>Calendrier de relance</h3>
+            <ul className={styles.jalons}>
+              {jalons.map((entree) => (
+                <li
+                  key={entree.jalon.id}
+                  className={entree.etat === 'FAIT' ? styles.jalonFait : undefined}
+                >
+                  <span className={styles.jalonDate}>{enFrancais(entree.echeance)}</span>
+                  <span>
+                    {entree.jalon.libelle}
+                    {entree.etat === 'FAIT' ? ' — fait' : ''}
+                    {entree.etat === 'EN_RETARD' ? ' — en retard' : ''}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {courriels.length > 0 && (
+          <>
+            <h3>Courriels versés au dossier</h3>
+            <ul>
+              {courriels.map((document) => (
+                <li key={document.id}>
+                  {document.courriel?.objet ?? 'Objet non renseigné'} —{' '}
+                  {document.courriel?.envoyeLe === null || document.courriel === null
+                    ? 'date d’envoi illisible, à saisir à la main'
+                    : `envoyé le ${dateLongue(document.courriel.envoyeLe)}`}
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </section>
 

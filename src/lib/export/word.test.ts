@@ -10,6 +10,7 @@ import {
   enregistrerAnalyse,
   majCabinet,
   majPerimetre,
+  majSuivi,
   rattacher,
   reecrire,
   type Dossier,
@@ -82,6 +83,10 @@ const dossierLivrable = (): Dossier => {
       BAIL.texte.indexOf('Le Preneur renonce à tout recours') + 60,
     ),
     cote: 'OBLIGATION',
+  })
+  dossier = majSuivi(dossier, {
+    envoyeLe: '2026-08-04T09:00:00.000Z',
+    destinataire: 'souscription@compagnie.test',
   })
   dossier = majPerimetre(dossier, {
     piecesManquantes: ['Conditions générales de la police'],
@@ -255,6 +260,22 @@ describe('structure imposée du rapport (brief §7)', () => {
     expect(document).toContain('Conditions générales de la police')
     expect(document).toContain('Les surfaces sont celles de l’état des lieux.')
     expect(document).toContain('Assuré identique au preneur, vérifié sur pièce.')
+  })
+
+  it('porte la prochaine action datée et le calendrier de relance (lot L5)', async () => {
+    const { archive } = await construire()
+    const document = deXml(archive.get('word/document.xml')?.toString('utf8') ?? '')
+    const section = document.slice(document.indexOf('Suivi d’attestation'))
+
+    // La prochaine action datée est ce que le §7 demande de porter.
+    // \w est ASCII : il ne reconnaît pas le « û » d’« août ».
+    expect(section).toMatch(/relance, le \d+ \p{L}+ 2026/u)
+    expect(section).toContain('Calendrier de relance')
+    expect(section).toContain('souscription@compagnie.test')
+    // Les cinq jalons figurent, chacun daté.
+    for (const jalon of ['Demande envoyée', 'Première relance', 'Escalade', 'Clôture du point']) {
+      expect(section, jalon).toContain(jalon)
+    }
   })
 
   it('hiérarchise les préconisations par enjeu chiffré', async () => {

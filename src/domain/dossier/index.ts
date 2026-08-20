@@ -22,6 +22,7 @@ import {
 import type { Analyse, ResultatMoteur } from '../moteur/moteur'
 import type { DocumentImporte } from '@/lib/import'
 
+import { SUIVI_VIDE, type Suivi } from './suivi'
 import {
   CABINET_VIDE,
   CLIENT_VIDE,
@@ -38,6 +39,7 @@ import {
 } from './types'
 
 export * from './types'
+export * from './suivi'
 export * from './fichier'
 
 const maintenant = (): string => new Date().toISOString()
@@ -53,6 +55,7 @@ export function dossierVierge(reference = ''): Dossier {
     ajustements: {},
     observations: [],
     perimetre: PERIMETRE_VIDE,
+    suivi: SUIVI_VIDE,
     majLe: maintenant(),
   }
 }
@@ -252,6 +255,24 @@ export function majClient(dossier: Dossier, client: Partial<FicheClient>): Dossi
 
 export function majReference(dossier: Dossier, reference: string): Dossier {
   return touche(dossier, { reference })
+}
+
+/** Calendrier de relance de l'attestation (§7, lot L5). */
+export function majSuivi(dossier: Dossier, suivi: Partial<Suivi>): Dossier {
+  return touche(dossier, { suivi: { ...dossier.suivi, ...suivi } })
+}
+
+/**
+ * Bascule un jalon entre « fait » et « a faire ».
+ *
+ * Le praticien coche ce qu'il a reellement envoye : Clauzy ne suppose jamais
+ * qu'une relance a ete faite parce que sa date est passee.
+ */
+export function basculerJalon(dossier: Dossier, jalon: Suivi['faits'][number]): Dossier {
+  const faits = dossier.suivi.faits.includes(jalon)
+    ? dossier.suivi.faits.filter((id) => id !== jalon)
+    : [...dossier.suivi.faits, jalon]
+  return majSuivi(dossier, { faits })
 }
 
 /** Identite du cabinet, reprise en page de garde du rapport (§7). */

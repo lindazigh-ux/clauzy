@@ -7,7 +7,10 @@ import styles from '../dossier.module.css'
 import { Etiquette } from './etiquettes'
 
 /**
- * Matrice des 40 controles (brief §5.2, §7).
+ * Synthese et matrice des 40 controles (brief §5.2, §7).
+ *
+ * Le resume passe devant le detail : la phrase de tete, les compteurs, puis les
+ * enjeux chiffres — un directeur immobilier reagit a un euro, pas a « gravite 3 ».
  *
  * Le filtre ne masque JAMAIS un controle du rapport : il ne filtre que
  * l'affichage de travail, et le compteur reste sur 40. Un controle absent d'un
@@ -15,13 +18,19 @@ import { Etiquette } from './etiquettes'
  */
 export type FiltreEtat = Statut | 'TOUS' | 'ECARTES'
 
-const COMPTEURS: readonly { readonly filtre: FiltreEtat; readonly libelle: string }[] = [
-  { filtre: 'TOUS', libelle: 'contrôles' },
-  { filtre: Statut.ECART, libelle: 'écarts' },
-  { filtre: Statut.CONFORME, libelle: 'conformes' },
-  { filtre: Statut.ABSENT_DU_BAIL, libelle: 'sans objet' },
-  { filtre: Statut.NON_DETECTE, libelle: 'à vérifier' },
-  { filtre: 'ECARTES', libelle: 'écartés' },
+type Compteur = {
+  readonly filtre: FiltreEtat
+  readonly libelle: string
+  readonly classe: string
+}
+
+const COMPTEURS: readonly Compteur[] = [
+  { filtre: 'TOUS', libelle: 'contrôles', classe: '' },
+  { filtre: Statut.ECART, libelle: 'écarts', classe: styles.compteurEcart ?? '' },
+  { filtre: Statut.CONFORME, libelle: 'conformes', classe: styles.compteurConforme ?? '' },
+  { filtre: Statut.ABSENT_DU_BAIL, libelle: 'sans objet', classe: styles.compteurAbsent ?? '' },
+  { filtre: Statut.NON_DETECTE, libelle: 'à vérifier', classe: styles.compteurVerifier ?? '' },
+  { filtre: 'ECARTES', libelle: 'écartés', classe: '' },
 ]
 
 const valeur = (synthese: SyntheseDossier, filtre: FiltreEtat): number => {
@@ -43,10 +52,12 @@ const valeur = (synthese: SyntheseDossier, filtre: FiltreEtat): number => {
 
 export function Synthese({
   synthese,
+  enjeux,
   filtre,
   onFiltrer,
 }: {
   readonly synthese: SyntheseDossier
+  readonly enjeux: readonly LigneRapport[]
   readonly filtre: FiltreEtat
   readonly onFiltrer: (filtre: FiltreEtat) => void
 }) {
@@ -56,11 +67,11 @@ export function Synthese({
       <p className={styles.phrase}>{synthese.phrase}</p>
 
       <div className={styles.compteurs}>
-        {COMPTEURS.map(({ filtre: valeurFiltre, libelle }) => (
+        {COMPTEURS.map(({ filtre: valeurFiltre, libelle, classe }) => (
           <button
             key={String(valeurFiltre)}
             type="button"
-            className={styles.compteurCase}
+            className={`${styles.compteurCase} ${classe}`}
             aria-pressed={filtre === valeurFiltre}
             onClick={() => onFiltrer(valeurFiltre)}
           >
@@ -70,11 +81,33 @@ export function Synthese({
         ))}
       </div>
 
+      {enjeux.length > 0 && (
+        <ul className={styles.enjeux}>
+          {enjeux.map((ligne) => (
+            <li key={ligne.controle.id} className={styles.enjeu}>
+              <span className={styles.enjeuChiffre}>{ligne.resumeEcart}</span>
+              <span className={styles.enjeuTitre}>{ligne.controle.titre}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
       {synthese.mentionAjustement !== null && (
         <p className={styles.mention}>{synthese.mentionAjustement}</p>
       )}
     </section>
   )
+}
+
+/** Le lisere qui porte l'etat, avant meme la lecture du titre. */
+const lisere = (ligne: LigneRapport): string => {
+  if (ligne.ecarte) return styles.lisereEcarte ?? ''
+  if (ligne.statut === Statut.ECART) {
+    return (ligne.gravite === 3 ? styles.lisereEcart : styles.lisereEcartMineur) ?? ''
+  }
+  if (ligne.statut === Statut.CONFORME) return styles.lisereConforme ?? ''
+  if (ligne.statut === Statut.NON_DETECTE) return styles.lisereVerifier ?? ''
+  return ''
 }
 
 export function Matrice({
@@ -116,9 +149,7 @@ export function Matrice({
                 type="button"
                 className={[
                   styles.ligne,
-                  ligne.statut === Statut.NON_DETECTE && !ligne.ecarte
-                    ? styles.ligneNonDetectee
-                    : '',
+                  lisere(ligne),
                   ligne.ecarte ? styles.ligneEcartee : '',
                 ]
                   .filter(Boolean)

@@ -1,9 +1,21 @@
-/* Poste de travail (brief §6, §8). */
+/**
+ * Poste de travail.
+ *
+ * Un outil se parcourt et s'opere, il ne se lit pas de haut en bas : le resume
+ * passe devant le detail, et l'etat de chaque controle s'encode dans la FORME
+ * autant que dans la couleur — un liseré de gravite, une pastille, une
+ * reference a chasse fixe. Ce qui appelle une decision doit se voir d'un
+ * coup d'oeil, sans lire.
+ *
+ * La colonne de droite reste collee : le praticien qui edite une ligne doit
+ * garder la matrice sous les yeux.
+ */
 
 .poste {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--surface);
 }
 
 /* A l'impression, seul le rapport client sort (brief §7). */
@@ -13,39 +25,61 @@
   }
 }
 
+/* --- barre superieure ---------------------------------------------------- */
+
 .barre {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--ligne);
   background: var(--bg);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
 }
 
 .barreContenu {
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: calc(var(--pas) * 3) calc(var(--pas) * 5);
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 6);
   display: flex;
   flex-wrap: wrap;
-  gap: calc(var(--pas) * 4);
+  gap: calc(var(--pas) * 3) calc(var(--pas) * 5);
   align-items: center;
-  justify-content: space-between;
 }
 
 .marque {
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  font-size: 1.1rem;
   color: var(--ink);
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--pas) * 2);
+}
+
+.marque::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.champReference {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--pas) * 2);
+  margin-left: auto;
 }
 
 .reference {
   font: inherit;
+  font-family: var(--mono);
+  font-size: 0.88rem;
   font-weight: 600;
-  border: 1px solid var(--line);
+  border: 1px solid var(--ligne);
   border-radius: var(--rayon);
   padding: calc(var(--pas) * 2) calc(var(--pas) * 3);
-  min-width: 14ch;
+  width: 17ch;
   background: var(--bg);
   color: var(--ink);
 }
@@ -56,131 +90,510 @@
   flex-wrap: wrap;
 }
 
+/* --- corps --------------------------------------------------------------- */
+
 .corps {
   flex: 1;
-  max-width: 1400px;
+  max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  padding: calc(var(--pas) * 6) calc(var(--pas) * 5) calc(var(--pas) * 16);
+  padding: calc(var(--pas) * 6) calc(var(--pas) * 6) calc(var(--pas) * 20);
   display: grid;
-  gap: calc(var(--pas) * 6);
-  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+  gap: calc(var(--pas) * 5);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
   align-items: start;
-}
-
-@media (max-width: 1000px) {
-  .corps {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
-  .corps {
-    padding: calc(var(--pas) * 4) calc(var(--pas) * 4) calc(var(--pas) * 12);
-  }
 }
 
 .colonne {
   display: grid;
-  gap: calc(var(--pas) * 6);
+  gap: calc(var(--pas) * 5);
   min-width: 0;
 }
 
-/* --- boutons ------------------------------------------------------------ */
+.colonneInspecteur {
+  position: sticky;
+  top: calc(var(--pas) * 20);
+  max-height: calc(100vh - var(--pas) * 24);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+@media (max-width: 1080px) {
+  .corps {
+    grid-template-columns: minmax(0, 1fr);
+    padding: calc(var(--pas) * 5) calc(var(--pas) * 4) calc(var(--pas) * 14);
+  }
+
+  .colonneInspecteur {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+/* --- boutons -------------------------------------------------------------- */
 
 .bouton,
 .boutonPrimaire,
 .boutonDiscret {
   font: inherit;
+  font-size: 0.88rem;
   font-weight: 600;
   border-radius: var(--rayon);
   padding: calc(var(--pas) * 2.5) calc(var(--pas) * 4);
-  border: 1px solid var(--line-dark);
+  border: 1px solid var(--ligne-forte);
   background: var(--bg);
   color: var(--ink);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+  white-space: nowrap;
 }
 
-.bouton:hover:not(:disabled),
-.boutonDiscret:hover:not(:disabled) {
-  background: var(--surface);
+.bouton:hover:not(:disabled) {
+  background: var(--accent-pale);
+  border-color: var(--accent-doux);
+  color: var(--accent-fort);
 }
 
 .boutonPrimaire {
-  background: var(--violet);
-  border-color: var(--violet);
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 
 .boutonPrimaire:hover:not(:disabled) {
-  background: var(--violet-dark);
-  border-color: var(--violet-dark);
+  background: var(--accent-fort);
+  border-color: var(--accent-fort);
 }
 
 .boutonDiscret {
   border-color: transparent;
-  padding: calc(var(--pas) * 1.5) calc(var(--pas) * 2.5);
-  font-size: 0.85rem;
+  background: transparent;
+  padding: calc(var(--pas) * 1.5) calc(var(--pas) * 2);
+  font-size: 0.82rem;
   color: var(--muted);
+}
+
+.boutonDiscret:hover:not(:disabled) {
+  color: var(--accent-fort);
+  background: var(--accent-pale);
 }
 
 .bouton:disabled,
 .boutonPrimaire:disabled,
 .boutonDiscret:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-/* --- cartes ------------------------------------------------------------- */
+/* --- cartes --------------------------------------------------------------- */
 
 .carte {
-  background: var(--card);
-  border: 1px solid var(--line);
+  background: var(--carte);
+  border: 1px solid var(--ligne);
   border-radius: var(--rayon-lg);
-  padding: calc(var(--pas) * 5);
-  box-shadow: var(--shadow-sm);
+  padding: calc(var(--pas) * 5) calc(var(--pas) * 5) calc(var(--pas) * 5);
+  box-shadow: var(--ombre-fine);
   min-width: 0;
 }
 
 .carte > h2 {
-  font-size: 1.05rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
   margin-bottom: calc(var(--pas) * 4);
+  padding-bottom: calc(var(--pas) * 2.5);
+  border-bottom: 1px solid var(--ligne);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: calc(var(--pas) * 2);
 }
 
-.carte > h2 > .compteur {
-  color: var(--faint);
+.compteur {
   font-weight: 500;
-  font-size: 0.85rem;
-  margin-left: calc(var(--pas) * 2);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--faint);
 }
 
 .vide {
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   margin: 0;
+  max-width: 56ch;
 }
 
-/* --- import ------------------------------------------------------------- */
+/* --- synthese : le resume avant le detail --------------------------------- */
+
+.phrase {
+  font-family: var(--serif);
+  font-size: 1.28rem;
+  line-height: 1.45;
+  margin: 0 0 calc(var(--pas) * 5);
+  max-width: 52ch;
+  color: var(--ink);
+}
+
+.compteurs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: calc(var(--pas) * 2);
+}
+
+.compteurCase {
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3);
+  border: 1px solid var(--ligne);
+  border-top-width: 3px;
+  border-top-color: var(--ligne-forte);
+  text-align: left;
+  background: var(--bg);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.compteurCase:hover {
+  background: var(--surface);
+}
+
+.compteurCase[aria-pressed='true'] {
+  border-color: var(--accent-doux);
+  border-top-color: var(--accent);
+  background: var(--accent-pale);
+}
+
+/* Chaque compteur porte la couleur de son etat : le filtre se lit sans texte. */
+.compteurEcart {
+  border-top-color: var(--rouge);
+}
+.compteurConforme {
+  border-top-color: var(--conforme);
+}
+.compteurAbsent {
+  border-top-color: var(--ligne-forte);
+}
+.compteurVerifier {
+  border-top-color: var(--ardoise);
+}
+
+.compteurValeur {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.compteurLibelle {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: calc(var(--pas) * 1.5);
+}
+
+.mention {
+  margin: calc(var(--pas) * 4) 0 0;
+  font-size: 0.85rem;
+  color: var(--accent-fort);
+  font-weight: 600;
+  background: var(--accent-pale);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 2.5) calc(var(--pas) * 3);
+}
+
+/* --- enjeux chiffres : ce qui fait reagir un decideur (§7) ----------------- */
+
+.enjeux {
+  list-style: none;
+  margin: calc(var(--pas) * 5) 0 0;
+  padding: calc(var(--pas) * 4) 0 0;
+  border-top: 1px solid var(--ligne);
+  display: grid;
+  gap: calc(var(--pas) * 2);
+}
+
+.enjeu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(var(--pas) * 2) calc(var(--pas) * 3);
+}
+
+.enjeuChiffre {
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--rouge);
+  font-variant-numeric: tabular-nums;
+}
+
+.enjeuTitre {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+/* --- matrice --------------------------------------------------------------- */
+
+.matrice {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--ligne);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon);
+  overflow: hidden;
+}
+
+.ligne {
+  display: grid;
+  grid-template-columns: 3px 5rem minmax(0, 1fr) auto;
+  gap: 0 calc(var(--pas) * 3);
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: none;
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 4) calc(var(--pas) * 3) 0;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.ligne:hover {
+  background: var(--surface);
+}
+
+.ligne[aria-current='true'] {
+  background: var(--accent-pale);
+}
+
+/* Le lisere de gravite : l'etat se lit avant le texte. */
+.ligne::before {
+  content: '';
+  align-self: stretch;
+  background: var(--ligne-forte);
+  border-radius: 0 2px 2px 0;
+}
+
+.lisereEcart::before {
+  background: var(--rouge);
+}
+.lisereEcartMineur::before {
+  background: var(--ambre);
+}
+.lisereConforme::before {
+  background: var(--conforme);
+}
+.lisereVerifier::before {
+  background: var(--ardoise);
+}
+.lisereEcarte::before {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--ligne-forte) 0 3px,
+    transparent 3px 6px
+  );
+}
+
+.ligneEcartee .titreLigne {
+  color: var(--muted);
+}
+
+.identifiant {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.titreLigne {
+  font-weight: 600;
+  font-size: 0.92rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sousTitre {
+  display: block;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.chiffre {
+  font-family: var(--mono);
+  color: var(--rouge);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.marqueAjustee {
+  font-size: 0.66rem;
+  color: var(--accent-fort);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: calc(var(--pas) * 2);
+  background: var(--accent-doux);
+  border-radius: 3px;
+  padding: 1px 5px;
+  vertical-align: 1px;
+}
+
+/* --- pastilles d'etat ------------------------------------------------------ */
+
+.etiquette {
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 3px 9px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.etiquetteEcart {
+  background: var(--rouge-doux);
+  color: var(--rouge);
+  border-color: var(--rouge-ligne);
+}
+
+.etiquetteEcartMineur {
+  background: var(--ambre-doux);
+  color: var(--ambre);
+  border-color: var(--ambre-ligne);
+}
+
+.etiquetteConforme {
+  background: var(--conforme-doux);
+  color: var(--accent-fort);
+  border-color: #bfdfd0;
+}
+
+.etiquetteAbsent {
+  background: var(--surface-2);
+  color: var(--muted);
+  border-color: var(--ligne);
+}
+
+/* « A verifier manuellement » : bordure pleine, jamais un aplat pale. Cet etat
+   doit etre saillant (§5.2) — c'est une ligne de checklist, pas un aveu. */
+.etiquetteNonDetecte {
+  background: var(--bg);
+  color: var(--ardoise);
+  border-color: var(--ardoise);
+}
+
+/* --- formulaires ------------------------------------------------------------ */
+
+.champ,
+.zoneTexte,
+.roleSelect {
+  font: inherit;
+  font-size: 0.9rem;
+  border: 1px solid var(--ligne-forte);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 2.25) calc(var(--pas) * 3);
+  background: var(--bg);
+  color: var(--ink);
+  width: 100%;
+  transition: border-color 0.14s ease;
+}
+
+.champ:hover,
+.zoneTexte:hover,
+.roleSelect:hover {
+  border-color: var(--accent-doux);
+}
+
+.zoneTexte {
+  min-height: 5.5rem;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.roleSelect {
+  width: auto;
+  max-width: 100%;
+}
+
+.champLabel {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: calc(var(--pas) * 1.5);
+}
+
+.rangee {
+  display: flex;
+  gap: calc(var(--pas) * 2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.editeur {
+  display: grid;
+  gap: calc(var(--pas) * 4);
+}
+
+.listeSimple {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: calc(var(--pas) * 2);
+}
+
+.puce {
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3);
+  font-size: 0.88rem;
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--pas) * 3);
+  align-items: flex-start;
+  background: var(--bg);
+}
+
+/* --- import ---------------------------------------------------------------- */
 
 .zoneDepot {
-  border: 2px dashed var(--line-dark);
+  border: 1.5px dashed var(--ligne-forte);
   border-radius: var(--rayon-lg);
   padding: calc(var(--pas) * 8) calc(var(--pas) * 5);
   text-align: center;
   background: var(--surface);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.14s ease, background 0.14s ease;
 }
 
 .zoneDepotActive {
-  border-color: var(--violet);
-  background: var(--violet-pale);
+  border-color: var(--accent);
+  background: var(--accent-pale);
 }
 
 .zoneDepot p {
-  margin: 0 auto calc(var(--pas) * 3);
+  margin: 0 auto calc(var(--pas) * 4);
   color: var(--muted);
-  max-width: 46ch;
+  max-width: 48ch;
+  font-size: 0.9rem;
 }
 
 .listeDocuments {
@@ -196,7 +609,7 @@
   gap: calc(var(--pas) * 3);
   align-items: center;
   justify-content: space-between;
-  border: 1px solid var(--line);
+  border: 1px solid var(--ligne);
   border-radius: var(--rayon);
   padding: calc(var(--pas) * 3);
   background: var(--bg);
@@ -205,256 +618,81 @@
 
 .documentNom {
   font-weight: 600;
+  font-size: 0.88rem;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
 .documentMeta {
   color: var(--faint);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 400;
 }
 
-.roleSelect,
-.champ,
-.zoneTexte {
-  font: inherit;
-  border: 1px solid var(--line);
-  border-radius: var(--rayon);
-  padding: calc(var(--pas) * 2) calc(var(--pas) * 3);
-  background: var(--bg);
-  color: var(--ink);
-  width: 100%;
-}
-
-.zoneTexte {
-  min-height: 5.5rem;
-  resize: vertical;
-  line-height: 1.5;
-}
-
-.roleSelect {
-  width: auto;
-}
-
-/* --- avertissements ----------------------------------------------------- */
+/* --- messages ---------------------------------------------------------------- */
 
 .avertissement,
 .erreur {
   border-radius: var(--rayon);
   padding: calc(var(--pas) * 3) calc(var(--pas) * 4);
-  font-size: 0.9rem;
+  font-size: 0.87rem;
   margin: calc(var(--pas) * 3) 0 0;
+  border-left-width: 3px;
+  border-left-style: solid;
 }
 
 .avertissement {
-  background: var(--amber-soft);
-  border: 1px solid #f0dfbc;
-  color: var(--amber);
+  background: var(--ambre-doux);
+  border: 1px solid var(--ambre-ligne);
+  border-left-color: var(--ambre);
+  color: var(--ambre);
 }
 
 .erreur {
-  background: var(--red-soft);
-  border: 1px solid #f3ced2;
-  color: var(--red);
+  background: var(--rouge-doux);
+  border: 1px solid var(--rouge-ligne);
+  border-left-color: var(--rouge);
+  color: var(--rouge);
 }
 
-/* --- synthèse ----------------------------------------------------------- */
-
-.phrase {
-  font-family: var(--serif);
-  font-size: 1.15rem;
-  line-height: 1.5;
-  margin: 0 0 calc(var(--pas) * 4);
-}
-
-.compteurs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: calc(var(--pas) * 3);
-}
-
-.compteurCase {
-  border-radius: var(--rayon);
-  padding: calc(var(--pas) * 3);
-  border: 1px solid var(--line);
-  text-align: left;
-  background: var(--bg);
-  cursor: pointer;
-  font: inherit;
-}
-
-.compteurCase[aria-pressed='true'] {
-  border-color: var(--violet);
-  background: var(--violet-pale);
-}
-
-.compteurValeur {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.compteurLibelle {
-  display: block;
-  font-size: 0.78rem;
-  color: var(--muted);
-  margin-top: calc(var(--pas) * 1);
-}
-
-.mention {
-  margin: calc(var(--pas) * 4) 0 0;
-  font-size: 0.9rem;
-  color: var(--violet-dark);
-  font-weight: 600;
-}
-
-/* --- matrice ------------------------------------------------------------ */
-
-.matrice {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: calc(var(--pas) * 2);
-}
-
-.ligne {
-  display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
-  gap: calc(var(--pas) * 3);
-  align-items: center;
-  width: 100%;
-  text-align: left;
-  font: inherit;
-  color: inherit;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--rayon);
-  padding: calc(var(--pas) * 3);
-  cursor: pointer;
-}
-
-.ligne:hover {
-  background: var(--surface);
-}
-
-.ligne[aria-current='true'] {
-  border-color: var(--violet);
-  box-shadow: 0 0 0 1px var(--violet);
-}
-
-/* NON_DETECTE doit être saillant, pas discret (brief §5.2). */
-.ligneNonDetectee {
-  border-left: 4px solid var(--blue-gray);
-  background: var(--blue-gray-soft);
-}
-
-.ligneEcartee {
-  opacity: 0.62;
-}
-
-.identifiant {
-  font-family: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
-  font-size: 0.8rem;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.titreLigne {
-  font-weight: 600;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.sousTitre {
-  display: block;
-  font-weight: 400;
-  font-size: 0.82rem;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
-.chiffre {
-  color: var(--red);
-  font-weight: 700;
-}
-
-.etiquette {
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 999px;
-  padding: 3px 10px;
-  white-space: nowrap;
-  border: 1px solid transparent;
-}
-
-.etiquetteEcart {
-  background: var(--red-soft);
-  color: var(--red);
-  border-color: #f3ced2;
-}
-
-.etiquetteEcartMineur {
-  background: var(--amber-soft);
-  color: var(--amber);
-  border-color: #f0dfbc;
-}
-
-.etiquetteConforme {
-  background: var(--green-soft);
-  color: var(--green);
-  border-color: #cfe8dc;
-}
-
-.etiquetteAbsent {
-  background: var(--surface-2);
-  color: var(--muted);
-  border-color: var(--line);
-}
-
-.etiquetteNonDetecte {
-  background: var(--bg);
-  color: var(--blue-gray);
-  border-color: var(--blue-gray);
-}
-
-.marqueAjustee {
-  font-size: 0.7rem;
-  color: var(--violet-dark);
-  font-weight: 700;
-  margin-left: calc(var(--pas) * 2);
-}
-
-/* --- éditeur ------------------------------------------------------------ */
-
-.editeur {
-  display: grid;
-  gap: calc(var(--pas) * 4);
-}
+/* --- editeur de ligne --------------------------------------------------------- */
 
 .editeurEnjeu {
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   margin: 0;
+  line-height: 1.55;
+  max-width: none;
+}
+
+.editeurEnjeu strong {
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .citation {
   font-family: var(--serif);
   font-style: italic;
-  border-left: 3px solid var(--violet-soft);
+  border-left: 2px solid var(--accent-doux);
   padding-left: calc(var(--pas) * 3);
   margin: 0;
   color: var(--ink);
   font-size: 0.95rem;
+  max-width: none;
 }
 
 .diagnostic {
   background: var(--surface);
+  border: 1px solid var(--ligne);
   border-radius: var(--rayon);
-  padding: calc(var(--pas) * 3);
-  font-size: 0.85rem;
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 4);
+  font-size: 0.83rem;
   color: var(--muted);
+  line-height: 1.55;
+}
+
+.diagnostic strong {
+  color: var(--ink);
 }
 
 .diagnostic ul {
@@ -462,60 +700,31 @@
   padding-left: 1.1rem;
 }
 
-.champLabel {
-  display: block;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--muted);
-  margin-bottom: calc(var(--pas) * 1.5);
-}
-
-.rangee {
-  display: flex;
-  gap: calc(var(--pas) * 2);
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.listeSimple {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: calc(var(--pas) * 2);
-}
-
-.puce {
-  border: 1px solid var(--line);
-  border-radius: var(--rayon);
-  padding: calc(var(--pas) * 3);
-  font-size: 0.9rem;
-  display: flex;
-  justify-content: space-between;
-  gap: calc(var(--pas) * 3);
-  align-items: flex-start;
-}
-
-/* --- lecteur de document ------------------------------------------------ */
+/* --- lecteur de document ------------------------------------------------------- */
 
 .lecteur {
-  max-height: 420px;
+  max-height: 380px;
   overflow: auto;
-  border: 1px solid var(--line);
+  border: 1px solid var(--ligne);
   border-radius: var(--rayon);
   padding: calc(var(--pas) * 4);
   background: var(--surface);
   white-space: pre-wrap;
-  font-size: 0.88rem;
-  line-height: 1.6;
+  font-size: 0.85rem;
+  line-height: 1.65;
   overflow-wrap: anywhere;
 }
 
+.lecteur::selection,
+.lecteur *::selection {
+  background: var(--accent-doux);
+}
+
 .selection {
-  background: var(--violet-pale);
-  border: 1px solid var(--violet-soft);
+  background: var(--accent-pale);
+  border: 1px solid var(--accent-doux);
   border-radius: var(--rayon);
-  padding: calc(var(--pas) * 3);
+  padding: calc(var(--pas) * 4);
   margin-top: calc(var(--pas) * 3);
   font-size: 0.88rem;
 }
@@ -526,4 +735,126 @@
   display: block;
   margin-bottom: calc(var(--pas) * 3);
   color: var(--ink);
+}
+
+/* --- suivi d'attestation (lot L5) ----------------------------------------------- */
+
+.prochaineAction {
+  display: flex;
+  gap: calc(var(--pas) * 3);
+  align-items: flex-start;
+  background: var(--accent-pale);
+  border: 1px solid var(--accent-doux);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 4);
+  margin-bottom: calc(var(--pas) * 4);
+  font-size: 0.9rem;
+}
+
+.prochaineActionRetard {
+  background: var(--ambre-doux);
+  border-color: var(--ambre-ligne);
+  color: var(--ambre);
+}
+
+.prochaineActionLibelle {
+  font-weight: 700;
+}
+
+.jalons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.jalon {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: calc(var(--pas) * 3);
+  align-items: start;
+  padding: calc(var(--pas) * 3) 0;
+  border-bottom: 1px solid var(--ligne);
+  position: relative;
+}
+
+.jalon:last-child {
+  border-bottom: none;
+}
+
+/* Le fil qui relie les jalons : le calendrier se lit comme une chronologie. */
+.jalon:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 28px;
+  bottom: 0;
+  width: 1px;
+  background: var(--ligne);
+}
+
+.jalonPastille {
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ligne-forte);
+  background: var(--bg);
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  color: var(--faint);
+  cursor: pointer;
+  padding: 0;
+  z-index: 1;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.jalonPastille:hover {
+  border-color: var(--accent);
+}
+
+.jalonFait .jalonPastille {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.jalonRetard .jalonPastille {
+  border-color: var(--ambre);
+  color: var(--ambre);
+}
+
+.jalonLibelle {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.jalonFait .jalonLibelle {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--ligne-forte);
+}
+
+.jalonAction {
+  display: block;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.5;
+}
+
+.jalonDate {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  padding-top: 2px;
+}
+
+.jalonRetard .jalonDate {
+  color: var(--ambre);
+  font-weight: 600;
 }

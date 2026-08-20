@@ -13,16 +13,16 @@
 .bloc {
   border-radius: var(--rayon-lg);
   padding: calc(var(--pas) * 5);
-  border: 1px solid var(--line);
+  border: 1px solid var(--ligne);
 }
 
 .reste {
-  background: var(--green-soft);
+  background: var(--conforme-doux);
   border-color: #cfe8dc;
 }
 
 .transite {
-  background: var(--blue-gray-soft);
+  background: var(--ardoise-doux);
   border-color: #dbe3ed;
 }
 
@@ -44,12 +44,12 @@
 .jamais {
   margin-top: calc(var(--pas) * 4);
   font-weight: 700;
-  color: var(--green);
+  color: var(--conforme);
 }
 
 .tableauEnveloppe {
   overflow-x: auto;
-  border: 1px solid var(--line);
+  border: 1px solid var(--ligne);
   border-radius: var(--rayon);
   margin-bottom: calc(var(--pas) * 8);
 }
@@ -65,7 +65,7 @@
 .tableau td {
   text-align: left;
   padding: calc(var(--pas) * 3) calc(var(--pas) * 4);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--ligne);
   vertical-align: top;
 }
 
@@ -108,8 +108,8 @@
   width: calc(var(--pas) * 7);
   height: calc(var(--pas) * 7);
   border-radius: 50%;
-  background: var(--violet-soft);
-  color: var(--violet-dark);
+  background: var(--accent-doux);
+  color: var(--accent-fort);
   font-weight: 700;
   font-size: 0.85rem;
   display: grid;
@@ -117,7 +117,7 @@
 }
 
 .limite {
-  background: var(--amber-soft);
+  background: var(--ambre-doux);
   border: 1px solid #f0dfbc;
   border-radius: var(--rayon-lg);
   padding: calc(var(--pas) * 5);
@@ -125,13 +125,13 @@
 }
 
 .limite h2 {
-  color: var(--amber);
+  color: var(--ambre);
   font-size: 1.05rem;
 }
 
 .empreinte {
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--ligne);
   border-radius: var(--rayon-lg);
   padding: calc(var(--pas) * 5);
 }
@@ -157,6 +157,6 @@
   padding: calc(var(--pas) * 3) calc(var(--pas) * 4);
   color: var(--muted);
   font-size: 0.85rem;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--ligne);
   background: var(--surface);
 }

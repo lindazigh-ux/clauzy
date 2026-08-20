@@ -1,8 +1,12 @@
 /**
  * Rapport client, mis en page pour l'impression (brief §7, §3).
  *
- * Masque a l'ecran, visible a l'impression seule : le PDF est produit par la
- * fonction d'impression du navigateur, sans service de conversion (§14).
+ * C'est ce que le client achete : il merite plus de soin que l'interface. Le
+ * PDF est produit par la fonction d'impression du navigateur, donc sans service
+ * de conversion, et la mise en page reste modifiable en CSS plutot qu'enfermee
+ * dans une bibliotheque.
+ *
+ * Masque a l'ecran, il n'apparait qu'a l'impression.
  */
 
 .rapport {
@@ -12,22 +16,26 @@
 @media print {
   .rapport {
     display: block !important;
-    color: #15151a;
+    color: var(--ink);
     font-family: var(--sans);
-    font-size: 10.5pt;
-    line-height: 1.5;
+    font-size: 10pt;
+    line-height: 1.55;
   }
 
   .rapport h2 {
-    font-size: 15pt;
-    margin: 0 0 8pt;
-    padding-bottom: 4pt;
-    border-bottom: 0.5pt solid #d1d1d8;
+    font-size: 14pt;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 10pt;
+    padding-bottom: 5pt;
+    border-bottom: 1.5pt solid var(--accent);
   }
 
   .rapport h3 {
-    font-size: 11pt;
-    margin: 12pt 0 4pt;
+    font-size: 10.5pt;
+    font-weight: 700;
+    margin: 13pt 0 4pt;
+    color: var(--ink);
   }
 
   .rapport p {
@@ -40,7 +48,7 @@
   .rapport ul,
   .rapport ol {
     margin: 0 0 8pt;
-    padding-left: 14pt;
+    padding-left: 13pt;
   }
 
   .rapport li {
@@ -48,77 +56,111 @@
     break-inside: avoid;
   }
 
-  /* --- page de garde --- */
+  /* --- page de garde ----------------------------------------------------- */
 
   .garde {
     break-after: page;
-    padding-top: 40mm;
+    padding-top: 42mm;
   }
 
   .cabinet {
-    font-size: 26pt;
+    font-size: 27pt;
     font-weight: 800;
-    letter-spacing: -0.02em;
-    margin: 0 0 6pt;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin: 0 0 7pt;
   }
 
   .objet {
+    font-family: var(--serif);
     font-size: 14pt;
-    border-bottom: 2pt solid;
-    padding-bottom: 10pt;
-    margin-bottom: 24pt !important;
+    line-height: 1.3;
+    border-bottom: 2.5pt solid;
+    padding-bottom: 11pt;
+    margin-bottom: 26pt !important;
+    color: var(--muted);
   }
 
   .champs {
-    margin-top: 20mm;
+    margin-top: 22mm;
+    border-top: 0.5pt solid var(--ligne);
+    padding-top: 10pt;
   }
 
   .champ {
     margin-bottom: 5pt !important;
+    display: flex;
+    gap: 6pt;
+    align-items: baseline;
   }
 
   .champLibelle {
-    display: inline-block;
-    min-width: 28mm;
-    color: #696a74;
-    font-size: 9pt;
+    min-width: 26mm;
+    color: var(--faint);
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 600;
   }
 
   .champValeur {
     font-weight: 700;
+    font-size: 10.5pt;
   }
 
-  /* --- sections --- */
+  /* --- sections ---------------------------------------------------------- */
 
   .section {
     break-before: page;
   }
 
   .discret {
-    color: #696a74;
-    font-size: 9.5pt;
+    color: var(--muted);
+    font-size: 9pt;
   }
 
   .mention {
-    color: #696a74;
-    font-size: 9pt;
-    border-left: 2pt solid #d1d1d8;
-    padding-left: 8pt;
+    color: var(--muted);
+    font-size: 8.5pt;
+    line-height: 1.5;
+    background: var(--surface);
+    border-left: 2pt solid var(--ligne-forte);
+    padding: 6pt 9pt;
   }
 
   .phrase {
     font-family: var(--serif);
-    font-style: italic;
-    font-size: 13pt;
-    line-height: 1.45;
-    margin-bottom: 10pt !important;
+    font-size: 13.5pt;
+    line-height: 1.4;
+    margin-bottom: 12pt !important;
+    color: var(--ink);
   }
 
-  /* --- préconisations --- */
+  /* --- préconisations ----------------------------------------------------- */
+
+  .preconisations {
+    list-style: none;
+    padding-left: 0;
+    counter-reset: preconisation;
+  }
 
   .preconisations > li {
     break-inside: avoid;
-    margin-bottom: 12pt;
+    margin-bottom: 14pt;
+    padding-left: 16pt;
+    position: relative;
+  }
+
+  .preconisations > li::before {
+    counter-increment: preconisation;
+    content: counter(preconisation);
+    position: absolute;
+    left: 0;
+    top: 1pt;
+    font-family: var(--mono);
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: var(--accent);
   }
 
   .preconisations h3 {
@@ -126,15 +168,18 @@
   }
 
   .reference {
-    font-family: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
-    font-size: 8.5pt;
-    color: #696a74;
+    font-family: var(--mono);
+    font-size: 8pt;
+    color: var(--faint);
     font-weight: 400;
   }
 
   .chiffre {
-    font-weight: 700;
-    color: #c73f4b;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 10.5pt;
+    color: var(--rouge);
+    font-variant-numeric: tabular-nums;
   }
 
   .etiquetteChamp {
@@ -144,32 +189,35 @@
   .redaction {
     font-family: var(--serif);
     font-style: italic;
-    border-left: 2pt solid #efedff;
+    border-left: 2pt solid var(--accent-doux);
     padding-left: 8pt;
+    color: var(--ink);
   }
 
-  /* --- matrice --- */
+  /* --- matrice ------------------------------------------------------------ */
 
   .matrice {
     width: 100%;
     border-collapse: collapse;
-    font-size: 8.5pt;
+    font-size: 8pt;
+    font-variant-numeric: tabular-nums;
   }
 
   .matrice th,
   .matrice td {
     text-align: left;
-    padding: 3pt 4pt;
-    border-bottom: 0.5pt solid #e4e4e9;
+    padding: 3.5pt 5pt;
+    border-bottom: 0.5pt solid var(--ligne);
     vertical-align: top;
   }
 
   .matrice th {
-    background: #f1f0f7;
-    font-size: 8pt;
+    background: var(--surface-2);
+    font-size: 7.5pt;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #696a74;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    border-bottom: 1pt solid var(--ligne-forte);
   }
 
   .matrice thead {
@@ -180,15 +228,76 @@
     break-inside: avoid;
   }
 
-  /* --- pied --- */
+  .matrice td:first-child {
+    font-family: var(--mono);
+    font-size: 7.5pt;
+    color: var(--muted);
+  }
+
+  /* L'etat porte sa couleur jusque sur le papier. */
+  .etatEcart {
+    color: var(--rouge);
+    font-weight: 700;
+  }
+
+  .etatConforme {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .etatVerifier {
+    color: var(--ardoise);
+    font-weight: 700;
+  }
+
+  .etatAbsent {
+    color: var(--muted);
+  }
+
+  /* --- suivi d'attestation ------------------------------------------------- */
+
+  .prochaine {
+    background: var(--accent-pale);
+    border-left: 2.5pt solid var(--accent);
+    padding: 7pt 10pt;
+    margin-bottom: 10pt !important;
+    font-weight: 600;
+  }
+
+  .jalons {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .jalons li {
+    display: flex;
+    gap: 8pt;
+    align-items: baseline;
+    border-bottom: 0.5pt solid var(--ligne);
+    padding: 3pt 0;
+  }
+
+  .jalonDate {
+    font-family: var(--mono);
+    font-size: 8pt;
+    color: var(--muted);
+    min-width: 32mm;
+  }
+
+  .jalonFait {
+    color: var(--muted);
+  }
+
+  /* --- pied ---------------------------------------------------------------- */
 
   .pied {
-    margin-top: 16pt;
+    margin-top: 18pt;
     padding-top: 6pt;
-    border-top: 0.5pt solid #e4e4e9;
+    border-top: 0.5pt solid var(--ligne);
     text-align: center;
-    color: #91919b;
-    font-size: 8pt;
+    color: var(--faint);
+    font-size: 7.5pt;
+    letter-spacing: 0.03em;
   }
 
   @page {

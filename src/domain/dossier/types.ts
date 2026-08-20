@@ -14,6 +14,7 @@
 import type { Gravite, Statut } from '../controles'
 import type { Analyse } from '../moteur/moteur'
 import type { DocumentImporte } from '@/lib/import'
+import type { Suivi } from './suivi'
 
 export type FicheClient = {
   readonly raisonSociale: string
@@ -114,6 +115,8 @@ export type Dossier = {
   readonly ajustements: Readonly<Record<string, Ajustement>>
   readonly observations: readonly Observation[]
   readonly perimetre: Perimetre
+  /** Calendrier de relance de l'attestation (§7, lot L5). */
+  readonly suivi: Suivi
   readonly majLe: string
 }
 
@@ -126,10 +129,13 @@ export const PERIMETRE_VIDE: Perimetre = {
 
 export const CLIENT_VIDE: FicheClient = { raisonSociale: '', adresse: '', activite: '' }
 
-/** Le violet de Clauzy sert de defaut : le cabinet le remplace par le sien. */
+/**
+ * Le vert de Clauzy sert de defaut, et rien de plus : un cabinet met sa propre
+ * couleur, et le rapport sort a la sienne (§7).
+ */
 export const CABINET_VIDE: Cabinet = {
   nom: '',
-  couleur: '6C5CE7',
+  couleur: '0E6B4A',
   praticien: '',
   qualite: '',
 }

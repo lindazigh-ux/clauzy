@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Manrope, Newsreader } from 'next/font/google'
+import { IBM_Plex_Mono, Manrope, Newsreader } from 'next/font/google'
 
 import './globals.css'
 
@@ -21,6 +21,17 @@ const newsreader = Newsreader({
   display: 'swap',
 })
 
+/**
+ * Face a chasse fixe pour les references de controle et les chiffres alignes.
+ * Le §8 n'en fixait pas : elle comble un manque plutot qu'elle n'ecarte un choix.
+ */
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  variable: '--police-mono',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: {
     default: 'Clauzy — le bail promet, la police suit-elle ?',
@@ -34,7 +45,7 @@ export const metadata: Metadata = {
 
 export default function RacineLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${manrope.variable} ${newsreader.variable}`}>
+    <html lang="fr" className={`${manrope.variable} ${newsreader.variable} ${plexMono.variable}`}>
       <body>{children}</body>
     </html>
   )

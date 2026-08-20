@@ -15,6 +15,9 @@
 import { LIBELLE_STATUT } from '@/domain/controles'
 import {
   MENTION_LIMITE,
+  calendrier,
+  enFrancais,
+  formulerProchaineAction,
   preconisations,
   resultatsAffiches,
   synthetiser,
@@ -315,30 +318,55 @@ const matrice = (d: Docx, lignes: readonly LigneRapport[]) => {
 
 const suiviAttestation = (d: Docx, dossier: Dossier) => {
   const courriels = dossier.documents.filter((document) => document.courriel !== null)
+  const jalons = calendrier(dossier.suivi)
   const blocs = [titre(d, 'Suivi d’attestation', 1)]
+
+  // La prochaine action datee, en tete : c'est ce que le §7 demande de porter.
+  blocs.push(
+    new d.Paragraph({
+      spacing: { after: 200 },
+      children: [
+        new d.TextRun({ text: formulerProchaineAction(dossier.suivi), bold: true, size: 22 }),
+      ],
+    }),
+  )
+
+  if (dossier.suivi.destinataire.trim().length > 0) {
+    blocs.push(texteSimple(d, `Demande adressée à ${dossier.suivi.destinataire}.`, { gris: true }))
+  }
+
+  if (jalons.length > 0) {
+    blocs.push(titre(d, 'Calendrier de relance', 2))
+    for (const entree of jalons) {
+      const etat =
+        entree.etat === 'FAIT' ? ' — fait' : entree.etat === 'EN_RETARD' ? ' — en retard' : ''
+      blocs.push(puce(d, `${enFrancais(entree.echeance)} · ${entree.jalon.libelle}${etat}`))
+    }
+  }
 
   if (courriels.length === 0) {
     blocs.push(
       texteSimple(
         d,
-        'Aucun courriel d’attestation n’a été importé. Le suivi de relance se renseigne à la main.',
+        'Aucun courriel d’attestation n’a été versé au dossier.',
         { gris: true },
       ),
     )
     return blocs
   }
 
+  blocs.push(titre(d, 'Courriels versés au dossier', 2))
   for (const document of courriels) {
     const courriel = document.courriel
     if (courriel === null) continue
-    blocs.push(puce(d, `Objet : ${courriel.objet ?? 'non renseigné'}`))
-    blocs.push(puce(d, `Expéditeur : ${courriel.expediteur ?? 'non renseigné'}`))
     blocs.push(
       puce(
         d,
-        courriel.envoyeLe === null
-          ? 'Date d’envoi illisible : à saisir à la main, c’est elle qui date la relance.'
-          : `Envoyé le ${dateLongue(courriel.envoyeLe)}`,
+        `${courriel.objet ?? 'Objet non renseigné'} — ${
+          courriel.envoyeLe === null
+            ? 'date d’envoi illisible, à saisir à la main'
+            : `envoyé le ${dateLongue(courriel.envoyeLe)}`
+        }`,
       ),
     )
   }

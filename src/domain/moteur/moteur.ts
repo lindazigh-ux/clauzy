@@ -387,9 +387,13 @@ export function analyser(documents: readonly DocumentAnalyse[]): Analyse {
         confianceObligation: obligation.confiance,
         confianceCouverture: couverture.confiance,
         motif,
-        signaux: [...obligation.signaux, ...couverture.signaux].map(
-          (signal) => `${signal.libelle} : ${signal.explication}`,
-        ),
+        // Les deux cotes sont nommes : sans cela, « la clause a ete trouvee
+        // dans un article dont l'intitule correspond » et « le document ne
+        // porte pas d'intitules » se suivent et paraissent se contredire.
+        signaux: [
+          ...obligation.signaux.map((s) => `Côté bail — ${s.libelle} : ${s.explication}`),
+          ...couverture.signaux.map((s) => `Côté pièces — ${s.libelle} : ${s.explication}`),
+        ],
       },
     }
   })

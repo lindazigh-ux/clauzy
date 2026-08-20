@@ -13,10 +13,13 @@ import {
   enregistrerAnalyse,
   forcerGravite,
   forcerStatut,
+  basculerJalon,
   majCabinet,
   majClient,
   majPerimetre,
   majReference,
+  majSuivi,
+  preconisations,
   rattacher,
   reecrire,
   reprendre,
@@ -27,8 +30,10 @@ import {
   type Cabinet,
   type Dossier,
   type FicheClient,
+  type IdJalon,
   type Perimetre,
   type Rattachement,
+  type Suivi as SuiviDossier,
 } from '@/domain/dossier'
 import { lancerAnalyse, lireFichier } from '@/lib/analyse/client'
 import { documentsAnalysables, type DocumentImporte, type RoleDocument } from '@/lib/import'
@@ -40,6 +45,7 @@ import { Livrable } from './composants/Livrable'
 import { Matrice, Synthese, type FiltreEtat } from './composants/Matrice'
 import { PanneauObservations, PanneauPerimetre } from './composants/Perimetre'
 import { RapportImprimable } from './composants/RapportImprimable'
+import { Suivi } from './composants/Suivi'
 import { Sauvegarde } from './composants/Sauvegarde'
 import { ZoneImport } from './composants/ZoneImport'
 
@@ -87,6 +93,12 @@ export function PosteDeTravail() {
 
   const lignes = useMemo(() => resultatsAffiches(dossier), [dossier])
   const synthese = useMemo(() => synthetiser(dossier), [dossier])
+  // Les enjeux chiffres remontent en tete : un directeur immobilier reagit a un
+  // euro, pas a « gravite 3 » (§7).
+  const enjeux = useMemo(
+    () => preconisations(dossier).filter((ligne) => ligne.resumeEcart !== null),
+    [dossier],
+  )
   const ligneActive = lignes.find((l) => l.controle.id === selection) ?? null
 
   /** Enveloppe les gestes qui peuvent refuser : le motif manquant remonte a l'ecran. */
@@ -194,16 +206,18 @@ export function PosteDeTravail() {
             Clauzy
           </Link>
 
-          <label className={styles.champLabel} htmlFor="reference" style={{ margin: 0 }}>
-            Référence du dossier
-          </label>
-          <input
-            id="reference"
-            className={styles.reference}
-            value={dossier.reference}
-            placeholder="D-2026-014"
-            onChange={(e) => setDossier((courant) => majReference(courant, e.target.value))}
-          />
+          <div className={styles.champReference}>
+            <label className={styles.champLabel} htmlFor="reference" style={{ margin: 0 }}>
+              Référence
+            </label>
+            <input
+              id="reference"
+              className={styles.reference}
+              value={dossier.reference}
+              placeholder="D-2026-014"
+              onChange={(e) => setDossier((courant) => majReference(courant, e.target.value))}
+            />
+          </div>
 
           <div className={styles.actions}>
             <button type="button" className={styles.bouton} onClick={chargerExemple}>
@@ -243,7 +257,12 @@ export function PosteDeTravail() {
             onRetirer={(id) => setDossier((courant) => retirerDocument(courant, id))}
           />
 
-          <Synthese synthese={synthese} filtre={filtre} onFiltrer={setFiltre} />
+          <Synthese
+            synthese={synthese}
+            enjeux={enjeux}
+            filtre={filtre}
+            onFiltrer={setFiltre}
+          />
 
           {dossier.analyse === null && (
             <p className={styles.avertissement}>
@@ -268,7 +287,7 @@ export function PosteDeTravail() {
           />
         </div>
 
-        <div className={styles.colonne}>
+        <div className={`${styles.colonne} ${styles.colonneInspecteur}`}>
           {ligneActive === null ? (
             <section className={styles.carte}>
               <h2>Reprendre une ligne</h2>
@@ -308,6 +327,14 @@ export function PosteDeTravail() {
               }
             />
           )}
+
+          <Suivi
+            dossier={dossier}
+            onSuivi={(suivi: Partial<SuiviDossier>) =>
+              setDossier((courant) => majSuivi(courant, suivi))
+            }
+            onBasculer={(jalon: IdJalon) => setDossier((courant) => basculerJalon(courant, jalon))}
+          />
 
           <PanneauPerimetre
             perimetre={dossier.perimetre}

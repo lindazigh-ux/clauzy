@@ -21,7 +21,8 @@ Le phasage est décrit au §12 du brief.
 | **L2** — poste de travail : édition, rattachement, observation, périmètre | **terminé** |
 | **L3** — sauvegarde et rechargement `.clauzy` | **terminé** |
 | **L4** — livrable : Word annoté, PDF, synthèse, enjeu chiffré | **terminé** |
-| L5 → L8 | à venir |
+| **L5** — suivi d'attestation, export `.ics` | **terminé** |
+| L6 → L8 | à venir |
 
 **L1 à L4 forment un outil complet, utilisable seul** (§12).
 
@@ -195,6 +196,34 @@ limites avec la mention de portée, synthèse autonome, préconisations
 **hiérarchisées par enjeu chiffré** puis par gravité, matrice des 40 tous états
 confondus, suivi d'attestation.
 
+### Le suivi d'attestation (L5)
+
+`src/domain/dossier/suivi.ts` et `src/lib/export/ics.ts`. Obtenir une
+attestation conforme n'est pas un événement, c'est une relance.
+
+**Cinq jalons, tous comptés depuis la date d'envoi de la demande.** Les huit
+jours de la première relance ne sont pas arbitraires : c'est le délai que les
+baux stipulent le plus souvent, et celui que surveille FOR-01. Suivent une
+relance écrite à quinze jours, une escalade à trente, une clôture à
+quarante-cinq.
+
+Trois règles :
+
+- **Sans date d'envoi, aucun calendrier.** Le moteur ne devine jamais une date :
+  une relance calculée sur une date fausse est pire qu'une relance non calculée.
+  La date vient du courriel Outlook importé quand elle y est lisible, et se
+  saisit à la main sinon.
+- **Renseigner la date d'envoi vaut affirmation que la demande est partie.** Ce
+  jalon-là n'a pas à être coché une seconde fois.
+- **Aucune relance n'est supposée faite parce que sa date est passée.** Le
+  praticien coche ce qu'il a réellement envoyé.
+
+L'export `.ics` porte tous les jalons restants, pas seulement le prochain : un
+praticien qui pose un rappel veut poser la suite en même temps. iCalendar est un
+format pointilleux — les lignes se plient à 75 **octets** (« é » en pèse deux),
+les séparateurs s'échappent, les sauts de ligne sont des CRLF. Un agenda qui
+refuse un fichier ne dit jamais pourquoi ; les tests vérifient les trois.
+
 ### Le corpus synthétique
 
 `src/domain/corpus/` — **aucun document client réel, même anonymisé** (§5.4,
@@ -294,6 +323,24 @@ npm run verifier:complet  # + build + budget de performance
 
 ---
 
+## Un écart assumé avec le brief
+
+Le §8 fixait une palette violette (`--violet: #6c5ce7`). Elle a été remplacée
+par un **vert profond** (`--accent: #0E6B4A`), sur décision explicite : c'est la
+couleur des reliures d'actes et des tampons de conformité, et elle place le
+produit du côté du dossier juridique.
+
+Les tokens sont donc nommés par leur **rôle** — `--accent`, `--surface`,
+`--ligne` — et non par leur teinte : un token nommé « violet » qui porte du vert
+ment, et le suivant mentirait encore. `CLAUZY_BUILD.md` conserve le §8 tel quel,
+sans correction silencieuse.
+
+Le reste du §8 tient : Newsreader en italique réservé aux citations de clauses,
+sentence case, un bouton qui dit ce qui se produit, un état vide qui invite à
+agir, une erreur qui dit quoi faire. Une face à chasse fixe (IBM Plex Mono) a
+été ajoutée pour les références de contrôle et les chiffres alignés — le §8 n'en
+fixait pas, elle comble un manque plutôt qu'elle n'écarte un choix.
+
 ## Les trois règles à ne pas enfreindre
 
 1. **Aucun contenu documentaire ne quitte le navigateur** (§2, §13). Si une
@@ -334,6 +381,7 @@ src/
     dossier/               poste de travail (§6)
   domain/
     dossier/               état de session, ajustements, composition (§4, §6)
+      suivi.ts             cinq jalons de relance (§7, L5)
     moteur/                segmentation, extracteurs, confiance, moteur (§5.3)
     corpus/                corpus synthétique — jamais un document réel (§5.4)
     controles/             référentiel des 40 contrôles (§5) — repris verbatim
@@ -344,7 +392,7 @@ src/
   lib/
     telechargement.ts      remise d'un fichier au praticien
     analyse/               Web Worker : lecture et analyse (§3)
-    export/                Word annoté et plan d'ancrage (§7, §14)
+    export/                Word annoté, plan d'ancrage, calendrier .ics (§7, §14)
     import/                PDF, Word, Outlook — en import dynamique (§3, §13)
     net/                   unique surface réseau (§2)
 scripts/
