@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { Gravite, Statut } from '@/domain/controles'
 import {
@@ -34,6 +34,7 @@ import { EditeurLigne } from './composants/EditeurLigne'
 import { LecteurDocument } from './composants/LecteurDocument'
 import { Matrice, Synthese, type FiltreEtat } from './composants/Matrice'
 import { PanneauObservations, PanneauPerimetre } from './composants/Perimetre'
+import { Sauvegarde } from './composants/Sauvegarde'
 import { ZoneImport } from './composants/ZoneImport'
 
 /**
@@ -57,6 +58,26 @@ export function PosteDeTravail() {
   const [analyseEnCours, setAnalyseEnCours] = useState(false)
   const [erreursImport, setErreursImport] = useState<readonly string[]>([])
   const [erreurEdition, setErreurEdition] = useState<string | null>(null)
+  const [enregistreLe, setEnregistreLe] = useState<string | null>(null)
+
+  const travailNonEnregistre =
+    dossier.documents.length > 0 && (enregistreLe === null || dossier.majLe > enregistreLe)
+
+  /**
+   * Garde-fou de fermeture (§4, lot L3).
+   *
+   * Le fichier .clauzy est la seule sauvegarde : fermer l'onglet sans
+   * enregistrer perd deux heures de travail. Le navigateur impose son propre
+   * libelle — on ne peut que declencher la question, pas la rediger.
+   */
+  useEffect(() => {
+    if (!travailNonEnregistre) return
+    const prevenir = (evenement: BeforeUnloadEvent) => {
+      evenement.preventDefault()
+    }
+    window.addEventListener('beforeunload', prevenir)
+    return () => window.removeEventListener('beforeunload', prevenir)
+  }, [travailNonEnregistre])
 
   const lignes = useMemo(() => resultatsAffiches(dossier), [dossier])
   const synthese = useMemo(() => synthetiser(dossier), [dossier])
@@ -195,6 +216,18 @@ export function PosteDeTravail() {
 
       <main className={styles.corps}>
         <div className={styles.colonne}>
+          <Sauvegarde
+            dossier={dossier}
+            enregistreLe={enregistreLe}
+            onEnregistre={() => setEnregistreLe(new Date().toISOString())}
+            onCharger={(charge) => {
+              setDossier(charge)
+              setEnregistreLe(charge.majLe)
+              setSelection(null)
+              setErreurEdition(null)
+            }}
+          />
+
           <ZoneImport
             documents={dossier.documents}
             enCours={lectureEnCours}

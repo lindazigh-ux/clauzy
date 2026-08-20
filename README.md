@@ -19,7 +19,7 @@ Le phasage est décrit au §12 du brief.
 | **L0** — squelette, tokens, couche réseau isolée, test anti-fuite | **terminé** |
 | **L1** — import, segmentation, moteur des 40 contrôles, corpus | **terminé** |
 | **L2** — poste de travail : édition, rattachement, observation, périmètre | **terminé** |
-| L3 — sauvegarde et rechargement `.clauzy` | à venir |
+| **L3** — sauvegarde et rechargement `.clauzy` | **terminé** |
 | L4 → L8 | à venir |
 
 ### Ce que L0 met en place
@@ -135,6 +135,33 @@ L'analyse tourne dans un **Web Worker** (`src/lib/analyse/`), avec un repli
 direct hors navigateur. Le repli est explicite : `lancerAnalyse()` dit lequel des
 deux chemins a servi, pour qu'une régression ne se traduise pas par une
 interface gelée sans que personne ne le voie.
+
+### La sauvegarde `.clauzy` (L3)
+
+`src/domain/dossier/fichier.ts`. Une analyse prend une à deux heures : rien ne
+doit dépendre de la durée de vie d'un onglet. Le fichier est écrit et relu
+**entièrement dans le navigateur**, puis téléchargé sur le poste — il ne
+transite jamais, et `src/lib/net` n'est pas même importé là.
+
+**Le chiffrement est facultatif à dessein.** Un dossier rangé dans un espace de
+travail déjà chiffré n'en a pas besoin, et un mot de passe oublié ferait perdre
+deux heures de travail — pire que le risque couvert. Quand il est demandé :
+PBKDF2-SHA-256 à 600 000 itérations (recommandation OWASP), puis AES-GCM, sel et
+vecteur tirés à chaque enregistrement.
+
+Trois choix qui méritent d'être dits :
+
+- **Le fichier en clair porte une empreinte SHA-256.** Elle ne protège pas de la
+  falsification — elle détecte la corruption. Un dossier tronqué par une
+  messagerie doit se voir à l'ouverture, pas trois clauses plus loin.
+- **On ne prétend pas distinguer un mauvais mot de passe d'un fichier altéré.**
+  AES-GCM ne le permet pas ; le message le dit plutôt que d'affirmer l'un des
+  deux.
+- **La migration est un point d'entrée, pas un refus de lire.** Un dossier
+  enregistré aujourd'hui doit rester ouvrable dans deux ans : c'est la seule
+  sauvegarde du travail du praticien.
+
+Un garde-fou de fermeture prévient tant que le travail n'est pas enregistré.
 
 ### Le corpus synthétique
 

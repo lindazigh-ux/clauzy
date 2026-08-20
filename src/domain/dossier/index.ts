@@ -36,6 +36,7 @@ import {
 } from './types'
 
 export * from './types'
+export * from './fichier'
 
 const maintenant = (): string => new Date().toISOString()
 
