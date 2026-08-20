@@ -1,0 +1,197 @@
+/**
+ * Rapport client, mis en page pour l'impression (brief §7, §3).
+ *
+ * Masque a l'ecran, visible a l'impression seule : le PDF est produit par la
+ * fonction d'impression du navigateur, sans service de conversion (§14).
+ */
+
+.rapport {
+  display: none;
+}
+
+@media print {
+  .rapport {
+    display: block !important;
+    color: #15151a;
+    font-family: var(--sans);
+    font-size: 10.5pt;
+    line-height: 1.5;
+  }
+
+  .rapport h2 {
+    font-size: 15pt;
+    margin: 0 0 8pt;
+    padding-bottom: 4pt;
+    border-bottom: 0.5pt solid #d1d1d8;
+  }
+
+  .rapport h3 {
+    font-size: 11pt;
+    margin: 12pt 0 4pt;
+  }
+
+  .rapport p {
+    margin: 0 0 6pt;
+    max-width: none;
+    orphans: 3;
+    widows: 3;
+  }
+
+  .rapport ul,
+  .rapport ol {
+    margin: 0 0 8pt;
+    padding-left: 14pt;
+  }
+
+  .rapport li {
+    margin-bottom: 3pt;
+    break-inside: avoid;
+  }
+
+  /* --- page de garde --- */
+
+  .garde {
+    break-after: page;
+    padding-top: 40mm;
+  }
+
+  .cabinet {
+    font-size: 26pt;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 6pt;
+  }
+
+  .objet {
+    font-size: 14pt;
+    border-bottom: 2pt solid;
+    padding-bottom: 10pt;
+    margin-bottom: 24pt !important;
+  }
+
+  .champs {
+    margin-top: 20mm;
+  }
+
+  .champ {
+    margin-bottom: 5pt !important;
+  }
+
+  .champLibelle {
+    display: inline-block;
+    min-width: 28mm;
+    color: #696a74;
+    font-size: 9pt;
+  }
+
+  .champValeur {
+    font-weight: 700;
+  }
+
+  /* --- sections --- */
+
+  .section {
+    break-before: page;
+  }
+
+  .discret {
+    color: #696a74;
+    font-size: 9.5pt;
+  }
+
+  .mention {
+    color: #696a74;
+    font-size: 9pt;
+    border-left: 2pt solid #d1d1d8;
+    padding-left: 8pt;
+  }
+
+  .phrase {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13pt;
+    line-height: 1.45;
+    margin-bottom: 10pt !important;
+  }
+
+  /* --- préconisations --- */
+
+  .preconisations > li {
+    break-inside: avoid;
+    margin-bottom: 12pt;
+  }
+
+  .preconisations h3 {
+    margin-top: 0;
+  }
+
+  .reference {
+    font-family: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+    font-size: 8.5pt;
+    color: #696a74;
+    font-weight: 400;
+  }
+
+  .chiffre {
+    font-weight: 700;
+    color: #c73f4b;
+  }
+
+  .etiquetteChamp {
+    font-weight: 700;
+  }
+
+  .redaction {
+    font-family: var(--serif);
+    font-style: italic;
+    border-left: 2pt solid #efedff;
+    padding-left: 8pt;
+  }
+
+  /* --- matrice --- */
+
+  .matrice {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+  }
+
+  .matrice th,
+  .matrice td {
+    text-align: left;
+    padding: 3pt 4pt;
+    border-bottom: 0.5pt solid #e4e4e9;
+    vertical-align: top;
+  }
+
+  .matrice th {
+    background: #f1f0f7;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #696a74;
+  }
+
+  .matrice thead {
+    display: table-header-group;
+  }
+
+  .matrice tr {
+    break-inside: avoid;
+  }
+
+  /* --- pied --- */
+
+  .pied {
+    margin-top: 16pt;
+    padding-top: 6pt;
+    border-top: 0.5pt solid #e4e4e9;
+    text-align: center;
+    color: #91919b;
+    font-size: 8pt;
+  }
+
+  @page {
+    margin: 18mm 16mm;
+  }
+}

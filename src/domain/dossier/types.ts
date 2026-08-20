@@ -21,6 +21,22 @@ export type FicheClient = {
   readonly activite: string
 }
 
+/**
+ * Identite de l'organisation qui livre l'analyse (brief §7).
+ *
+ * Le rapport sort aux couleurs du cabinet, PAS a celles de Clauzy : le client
+ * achete une analyse, pas un abonnement. La marque Clauzy reste discrete, en
+ * pied de page.
+ */
+export type Cabinet = {
+  readonly nom: string
+  /** Couleur de la page de garde, en hexadecimal sans diese. */
+  readonly couleur: string
+  readonly praticien: string
+  /** Qualite du signataire : « courtier », « avocat », « directrice juridique »… */
+  readonly qualite: string
+}
+
 /** De quel cote du croisement vient un passage rattache a la main. */
 export type CoteRattachement = 'OBLIGATION' | 'COUVERTURE'
 
@@ -89,6 +105,7 @@ export type Perimetre = {
 export type Dossier = {
   readonly version: 1
   readonly reference: string
+  readonly cabinet: Cabinet
   readonly client: FicheClient
   readonly documents: readonly DocumentImporte[]
   /** Derniere sortie du moteur. Null tant qu'aucune analyse n'a tourne. */
@@ -108,6 +125,20 @@ export const PERIMETRE_VIDE: Perimetre = {
 }
 
 export const CLIENT_VIDE: FicheClient = { raisonSociale: '', adresse: '', activite: '' }
+
+/** Le violet de Clauzy sert de defaut : le cabinet le remplace par le sien. */
+export const CABINET_VIDE: Cabinet = {
+  nom: '',
+  couleur: '6C5CE7',
+  praticien: '',
+  qualite: '',
+}
+
+/** Mention imposee au rapport (brief §7, §13). Jamais reformulee a la legere. */
+export const MENTION_LIMITE =
+  'Outil d’aide au conseil. Ce document ne constitue ni un avis juridique, ni une garantie de ' +
+  'couverture. Il ne dispense pas de l’examen des conditions générales et particulières des ' +
+  'polices, ni de la consultation d’un conseil.'
 
 /** Une modification manuelle sans motif n'est pas opposable. */
 export class MotifRequis extends Error {

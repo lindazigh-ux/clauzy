@@ -13,6 +13,8 @@ import {
   enregistrerAnalyse,
   forcerGravite,
   forcerStatut,
+  majCabinet,
+  majClient,
   majPerimetre,
   majReference,
   rattacher,
@@ -22,7 +24,9 @@ import {
   retirerDocument,
   retirerObservation,
   synthetiser,
+  type Cabinet,
   type Dossier,
+  type FicheClient,
   type Perimetre,
   type Rattachement,
 } from '@/domain/dossier'
@@ -32,8 +36,10 @@ import { documentsAnalysables, type DocumentImporte, type RoleDocument } from '@
 import styles from './dossier.module.css'
 import { EditeurLigne } from './composants/EditeurLigne'
 import { LecteurDocument } from './composants/LecteurDocument'
+import { Livrable } from './composants/Livrable'
 import { Matrice, Synthese, type FiltreEtat } from './composants/Matrice'
 import { PanneauObservations, PanneauPerimetre } from './composants/Perimetre'
+import { RapportImprimable } from './composants/RapportImprimable'
 import { Sauvegarde } from './composants/Sauvegarde'
 import { ZoneImport } from './composants/ZoneImport'
 
@@ -180,6 +186,7 @@ export function PosteDeTravail() {
   const aucunDocument = dossier.documents.length === 0
 
   return (
+    <>
     <div className={styles.poste}>
       <header className={styles.barre}>
         <div className={styles.barreContenu}>
@@ -316,8 +323,25 @@ export function PosteDeTravail() {
             }
             onRetirer={(id) => setDossier((courant) => retirerObservation(courant, id))}
           />
+
+          <Livrable
+            dossier={dossier}
+            onCabinet={(cabinet: Partial<Cabinet>) =>
+              setDossier((courant) => majCabinet(courant, cabinet))
+            }
+            onClient={(client: Partial<FicheClient>) =>
+              setDossier((courant) => majClient(courant, client))
+            }
+          />
         </div>
       </main>
     </div>
+
+    {/*
+      Frere du poste de travail, jamais son enfant : a l'impression le poste est
+      masque, et un rapport range dedans disparaitrait avec lui.
+    */}
+    <RapportImprimable dossier={dossier} />
+    </>
   )
 }

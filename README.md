@@ -20,7 +20,10 @@ Le phasage est décrit au §12 du brief.
 | **L1** — import, segmentation, moteur des 40 contrôles, corpus | **terminé** |
 | **L2** — poste de travail : édition, rattachement, observation, périmètre | **terminé** |
 | **L3** — sauvegarde et rechargement `.clauzy` | **terminé** |
-| L4 → L8 | à venir |
+| **L4** — livrable : Word annoté, PDF, synthèse, enjeu chiffré | **terminé** |
+| L5 → L8 | à venir |
+
+**L1 à L4 forment un outil complet, utilisable seul** (§12).
 
 ### Ce que L0 met en place
 
@@ -163,6 +166,35 @@ Trois choix qui méritent d'être dits :
 
 Un garde-fou de fermeture prévient tant que le travail n'est pas enregistré.
 
+### Le livrable (L4)
+
+`src/lib/export/` et `src/app/dossier/composants/RapportImprimable.tsx`. C'est ce
+que le client achète — soigné davantage que l'interface (§7).
+
+**Word annoté — la fonction signature.** Chaque commentaire est ancré
+*nativement* au passage original du bail : le client ouvre le fichier dans Word,
+voit la clause encadrée et le conseil en marge, comme si un confrère l'avait
+relu. Tout repose sur les offsets conservés depuis la segmentation — **on ne
+recolle jamais un commentaire par recherche de texte**, deux clauses d'un bail
+pouvant être rigoureusement identiques.
+
+Le plan d'annotation (`annotations.ts`) est **pur** : il ne connaît pas `docx`,
+et se vérifie caractère par caractère. Les tests vont plus loin et ouvrent le
+`.docx` produit pour relire son OOXML — c'est le fichier remis au client qui
+doit être juste, pas la structure intermédiaire. Plages qui se chevauchent et
+plages qui franchissent un paragraphe sont couvertes.
+
+**PDF client.** Rendu par la fonction d'impression du navigateur (§3), donc sans
+service de conversion : lire et écrire un document ne dépend d'aucun tiers
+(§14). Le rapport est un frère du poste de travail dans le DOM, jamais son
+enfant — rangé dedans, il disparaîtrait avec lui à l'impression.
+
+Structure imposée par le §7, vérifiée dans les deux sorties : page de garde aux
+couleurs du **cabinet** (la marque Clauzy tient en pied de page), périmètre et
+limites avec la mention de portée, synthèse autonome, préconisations
+**hiérarchisées par enjeu chiffré** puis par gravité, matrice des 40 tous états
+confondus, suivi d'attestation.
+
 ### Le corpus synthétique
 
 `src/domain/corpus/` — **aucun document client réel, même anonymisé** (§5.4,
@@ -295,6 +327,7 @@ src/
       referentiel.test.ts  protection de l'actif principal
   lib/
     analyse/               Web Worker : lecture et analyse (§3)
+    export/                Word annoté et plan d'ancrage (§7, §14)
     import/                PDF, Word, Outlook — en import dynamique (§3, §13)
     net/                   unique surface réseau (§2)
 scripts/

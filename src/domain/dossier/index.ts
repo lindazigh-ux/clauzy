@@ -23,10 +23,12 @@ import type { Analyse, ResultatMoteur } from '../moteur/moteur'
 import type { DocumentImporte } from '@/lib/import'
 
 import {
+  CABINET_VIDE,
   CLIENT_VIDE,
   MotifRequis,
   PERIMETRE_VIDE,
   type Ajustement,
+  type Cabinet,
   type CoteRattachement,
   type Dossier,
   type FicheClient,
@@ -44,6 +46,7 @@ export function dossierVierge(reference = ''): Dossier {
   return {
     version: 1,
     reference,
+    cabinet: CABINET_VIDE,
     client: CLIENT_VIDE,
     documents: [],
     analyse: null,
@@ -249,6 +252,11 @@ export function majClient(dossier: Dossier, client: Partial<FicheClient>): Dossi
 
 export function majReference(dossier: Dossier, reference: string): Dossier {
   return touche(dossier, { reference })
+}
+
+/** Identite du cabinet, reprise en page de garde du rapport (§7). */
+export function majCabinet(dossier: Dossier, cabinet: Partial<Cabinet>): Dossier {
+  return touche(dossier, { cabinet: { ...dossier.cabinet, ...cabinet } })
 }
 
 // ---------------------------------------------------------------------------
