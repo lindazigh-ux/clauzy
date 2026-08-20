@@ -52,9 +52,11 @@ export function detecterFormat(nom: string, donnees: ArrayBuffer): FormatFichier
 
 const decoderTexte = (donnees: ArrayBuffer): string => {
   const utf8 = new TextDecoder('utf-8', { fatal: false }).decode(donnees)
-  // U+FFFD en nombre signale un encodage occidental hérité, encore courant
-  // dans les exports de logiciels de gestion locative.
-  const suspects = (utf8.match(/�/g) ?? []).length
+  // Le caractere de remplacement U+FFFD en nombre signale un encodage
+  // occidental herite, encore courant dans les exports de logiciels de gestion
+  // locative. On l'ecrit echappe : un U+FFFD litteral dans le source se propage
+  // au bundle et casse certains outils de publication.
+  const suspects = (utf8.match(/\uFFFD/g) ?? []).length
   if (suspects > utf8.length / 200) {
     return new TextDecoder('windows-1252', { fatal: false }).decode(donnees)
   }

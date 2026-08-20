@@ -3,6 +3,7 @@
 import { useState } from 'react'
 
 import type { Cabinet, Dossier, FicheClient } from '@/domain/dossier'
+import { remettreFichier } from '@/lib/telechargement'
 
 import styles from '../dossier.module.css'
 
@@ -38,19 +39,17 @@ export function Livrable({ dossier, onCabinet, onClient }: LivrableProps) {
       // dans le bundle initial (§13).
       const { exporterWord: construire } = await import('@/lib/export/word')
       const rapport = await construire(dossier)
+      const remise = await remettreFichier(rapport.nomFichier, rapport.donnees)
 
-      const lien = document.createElement('a')
-      const url = URL.createObjectURL(rapport.donnees)
-      lien.href = url
-      lien.download = rapport.nomFichier
-      lien.click()
-      URL.revokeObjectURL(url)
-
-      setDernier(
-        `Note exportée — ${rapport.nombreCommentaires} commentaire${
-          rapport.nombreCommentaires > 1 ? 's' : ''
-        } ancré${rapport.nombreCommentaires > 1 ? 's' : ''} au texte du bail.`,
-      )
+      if (remise.etat === 'impossible') {
+        setErreur(remise.message)
+      } else if (remise.etat === 'enregistre') {
+        setDernier(
+          `Note exportée — ${rapport.nombreCommentaires} commentaire${
+            rapport.nombreCommentaires > 1 ? 's' : ''
+          } ancré${rapport.nombreCommentaires > 1 ? 's' : ''} au texte du bail.`,
+        )
+      }
     } catch (cause) {
       setErreur(
         cause instanceof Error

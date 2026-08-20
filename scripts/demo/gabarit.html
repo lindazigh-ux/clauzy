@@ -1,0 +1,195 @@
+<title>Poste de travail Clauzy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap">
+
+<style>
+/*STYLES*/
+</style>
+
+<style>
+/*
+ * Bandeau de la demonstration.
+ *
+ * Il reprend les tokens du §8 — l'identite visuelle du produit existe deja et
+ * ne se renegocie pas ici. Le bandeau reste sobre : c'est un preambule a un
+ * outil, pas une page de presentation.
+ *
+ * Le produit assume un theme clair unique : c'est un outil qui prepare des
+ * documents imprimes, et sa palette est fixee par le brief. Toutes les couleurs
+ * sont donc peintes explicitement, fond compris, pour que la page tienne quel
+ * que soit le theme de l'hote.
+ */
+body {
+  background: var(--bg);
+  color: var(--ink);
+  margin: 0;
+}
+
+.bandeau {
+  border-bottom: 1px solid var(--line);
+  background: var(--violet-pale);
+  color: var(--ink);
+}
+
+.bandeauContenu {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 28px 20px 24px;
+  display: grid;
+  gap: 20px;
+}
+
+.bandeauTete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px 16px;
+}
+
+.bandeauTitre {
+  font-family: var(--sans);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--ink);
+}
+
+.bandeauSous {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--violet-dark);
+}
+
+.bandeauGrille {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+
+.bandeauBloc {
+  border-left: 2px solid var(--violet-soft);
+  padding-left: 14px;
+}
+
+.bandeauEtiquette {
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--violet-dark);
+  margin-bottom: 6px;
+}
+
+.bandeauBloc p {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 46ch;
+}
+
+.bandeauBloc strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.bandeauDemarrer {
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--violet-soft);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 0;
+  max-width: none;
+}
+
+.bandeauDemarrer b {
+  font-weight: 700;
+}
+
+.bandeauDemarrer code {
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-size: 0.82em;
+  background: var(--surface-2);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+
+.bandeauDemarrer br {
+  content: '';
+  display: block;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 480px) {
+  .bandeauContenu {
+    padding: 20px 16px;
+  }
+}
+
+@media print {
+  .bandeau {
+    display: none !important;
+  }
+}
+</style>
+
+<div class="bandeau">
+  <div class="bandeauContenu">
+    <div class="bandeauTete">
+      <h1 class="bandeauTitre">Clauzy — poste de travail</h1>
+      <span class="bandeauSous">le bail promet, la police ne suit pas</span>
+    </div>
+
+    <div class="bandeauGrille">
+      <div class="bandeauBloc">
+        <span class="bandeauEtiquette">Ce qui tourne ici</span>
+        <p>
+          Les <strong>40 contrôles</strong>, le moteur, le corpus synthétique, le poste de travail
+          et les deux exports. Rien n’est simulé : c’est le code du produit, dans un seul fichier.
+        </p>
+      </div>
+      <div class="bandeauBloc">
+        <span class="bandeauEtiquette">Vos documents</span>
+        <p>
+          Cette page <strong>n’a aucun serveur</strong>. Tout ce que vous importez est lu par votre
+          navigateur et n’en sort pas — c’est l’architecture du produit, pas une promesse.
+        </p>
+      </div>
+      <div class="bandeauBloc">
+        <span class="bandeauEtiquette">Deux écarts avec l’application</span>
+        <p>
+          L’analyse tourne ici sur le fil principal, faute de Web Worker dans un fichier unique.
+          Et seul le <strong>texte brut</strong> s’importe : les lecteurs PDF, Word et Outlook
+          pèsent trop pour être embarqués.
+        </p>
+      </div>
+    </div>
+
+    <p class="bandeauDemarrer">
+      <b>Par où commencer.</b> Cliquez sur <b>Charger un dossier d’exemple</b>, puis
+      <b>Analyser les pièces</b>. Vous obtenez 40 résultats, dont deux écarts chiffrés.
+      Ouvrez ensuite une ligne pour la reprendre à la main, sélectionnez un passage du bail pour le
+      rattacher à un contrôle, puis exportez la note Word — ses commentaires sont ancrés aux
+      clauses.
+      <br>
+      <b>À l’enregistrement</b>, cette page vous demandera confirmation : elle n’écrit rien sans
+      votre accord. Le dossier sauvegardé prend l’extension <code>.clauzy.json</code> ici, et se
+      rouvre tel quel.
+    </p>
+  </div>
+</div>
+
+<div id="racine"></div>
+
+<script>
+/*SCRIPT*/
+</script>

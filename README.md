@@ -261,6 +261,22 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
+## Essayer sans rien installer
+
+```bash
+npm run demo          # écrit demo/clauzy-demo.html
+```
+
+Un **fichier unique, sans serveur** : ouvrez-le dans un navigateur. Il embarque
+le produit réel — les 40 contrôles, le moteur, le corpus, le poste de travail et
+les deux exports. Deux écarts avec l'application, annoncés à l'écran : l'analyse
+tourne sur le fil principal faute de Web Worker dans un bundle unique, et seul
+le texte brut s'importe (les lecteurs PDF, Word et Outlook pèsent trop pour être
+embarqués).
+
+C'est possible parce que **tout est client-side par construction** : la
+démonstration n'est pas une maquette, c'est le code du produit.
+
 ## Vérifier
 
 ```bash
@@ -326,6 +342,7 @@ src/
       index.ts             REFERENTIEL, squeletteResultats(), verifierReferentiel()
       referentiel.test.ts  protection de l'actif principal
   lib/
+    telechargement.ts      remise d'un fichier au praticien
     analyse/               Web Worker : lecture et analyse (§3)
     export/                Word annoté et plan d'ancrage (§7, §14)
     import/                PDF, Word, Outlook — en import dynamique (§3, §13)

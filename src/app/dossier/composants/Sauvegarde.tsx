@@ -10,6 +10,7 @@ import {
   serialiser,
   type Dossier,
 } from '@/domain/dossier'
+import { remettreFichier } from '@/lib/telechargement'
 
 import styles from '../dossier.module.css'
 
@@ -47,13 +48,13 @@ export function Sauvegarde({ dossier, enregistreLe, onEnregistre, onCharger }: S
     setErreur(null)
     try {
       const contenu = await serialiser(dossier, motDePasse.length > 0 ? motDePasse : undefined)
-      const lien = document.createElement('a')
-      const url = URL.createObjectURL(new Blob([contenu], { type: 'application/json' }))
-      lien.href = url
-      lien.download = nomFichier(dossier)
-      lien.click()
-      URL.revokeObjectURL(url)
-      onEnregistre()
+      const remise = await remettreFichier(
+        nomFichier(dossier),
+        new Blob([contenu], { type: 'application/json' }),
+      )
+
+      if (remise.etat === 'enregistre') onEnregistre()
+      else if (remise.etat === 'impossible') setErreur(remise.message)
     } catch (cause) {
       setErreur(
         cause instanceof Error
@@ -143,7 +144,7 @@ export function Sauvegarde({ dossier, enregistreLe, onEnregistre, onCharger }: S
           <input
             ref={entree}
             type="file"
-            accept={EXTENSION}
+            accept={`${EXTENSION},.json`}
             hidden
             onChange={(e) => {
               const fichier = e.target.files?.[0]

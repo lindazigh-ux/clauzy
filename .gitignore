@@ -13,6 +13,10 @@ next-env.d.ts
 *.log
 npm-debug.log*
 
+# La demonstration autonome est un artefact de construction : `npm run demo`
+# la regenere en quelques secondes.
+/demo/
+
 # Aucun document client, sous quelque forme que ce soit, ne doit se retrouver
 # dans ce depot — y compris anonymise (brief §5.4, §13).
 *.clauzy
