@@ -1,0 +1,170 @@
+/**
+ * Design system Clauzy (brief §8).
+ *
+ * Les tokens sont repris tels quels du prototype : l'identite visuelle est
+ * deja bonne, elle ne se renegocie pas. Seules les piles de repli des polices
+ * ont ete ajoutees, pour que la page reste lisible avant leur chargement.
+ *
+ * Regles de redaction, valables dans toute l'application :
+ *   - Newsreader en italique est reserve aux citations de clauses et aux
+ *     accents de titres. Nulle part ailleurs ;
+ *   - sentence case partout ;
+ *   - un bouton dit ce qui se produit (« Exporter la note », pas « Valider ») ;
+ *   - un etat vide est une invitation a agir ;
+ *   - une erreur dit quoi faire, jamais « une erreur est survenue ».
+ */
+
+:root {
+  --bg: #fff;
+  --surface: #f7f7fa;
+  --surface-2: #f1f0f7;
+  --card: #fff;
+
+  --ink: #15151a;
+  --muted: #696a74;
+  --faint: #91919b;
+
+  --line: #e4e4e9;
+  --line-dark: #d1d1d8;
+
+  --violet: #6c5ce7;
+  --violet-dark: #5544d4;
+  --violet-soft: #efedff;
+  --violet-pale: #f7f6ff;
+
+  --red: #c73f4b;
+  --red-soft: #fff1f2;
+  --amber: #a76f12;
+  --amber-soft: #fff8e8;
+  --green: #247a55;
+  --green-soft: #edf8f2;
+  --blue-gray: #607086;
+  --blue-gray-soft: #f0f3f7;
+
+  --sans: var(--police-sans), "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif: var(--police-serif), "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
+
+  --shadow-sm: 0 10px 30px #1f1b3812;
+  --shadow-lg: 0 32px 80px #29225824;
+
+  /* Rythme vertical et rayons, deduits du prototype. */
+  --pas: 4px;
+  --rayon: 10px;
+  --rayon-lg: 16px;
+  --largeur-texte: 68ch;
+  --largeur-page: 1100px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  margin: 0 0 calc(var(--pas) * 3);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.6rem);
+  font-weight: 700;
+}
+
+h2 {
+  font-size: clamp(1.25rem, 1.05rem + 0.9vw, 1.6rem);
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+p {
+  margin: 0 0 calc(var(--pas) * 4);
+  max-width: var(--largeur-texte);
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--violet-dark);
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  color: var(--violet);
+}
+
+/* Citation d'une clause : le seul emploi legitime de l'italique serif (§8). */
+.clause {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--ink);
+  border-left: 3px solid var(--violet-soft);
+  padding-left: calc(var(--pas) * 4);
+  margin: 0 0 calc(var(--pas) * 4);
+}
+
+code,
+kbd,
+samp {
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-size: 0.875em;
+  background: var(--surface-2);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+
+/* Plancher de qualite non negociable (§8) : focus clavier toujours visible. */
+:focus-visible {
+  outline: 2px solid var(--violet-dark);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Plancher de qualite : mouvement respectueux. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Plancher de qualite : lisible jusqu'a 360 px. */
+.page {
+  max-width: var(--largeur-page);
+  margin: 0 auto;
+  padding: calc(var(--pas) * 10) calc(var(--pas) * 5) calc(var(--pas) * 16);
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: calc(var(--pas) * 7) calc(var(--pas) * 4) calc(var(--pas) * 12);
+  }
+}

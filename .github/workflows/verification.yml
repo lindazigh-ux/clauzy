@@ -1,0 +1,45 @@
+name: Verification
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# Le test anti-fuite reseau doit bloquer la fusion (brief §14).
+# Configurez « anti-fuite reseau » comme verification requise sur la branche
+# par defaut : c'est la garantie que le differenciateur du produit ne se perd
+# pas dans une pull request pressee.
+
+jobs:
+  verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installation
+        run: npm ci
+
+      - name: anti-fuite reseau
+        run: npx vitest run src/lib/net tests/architecture
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          CLAUZY_BUILD_HASH: ${{ github.sha }}
+
+      - name: Budget de performance
+        run: npm run budget

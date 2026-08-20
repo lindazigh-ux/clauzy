@@ -1,0 +1,35 @@
+{
+  "name": "clauzy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reconcilie une obligation contractuelle avec une couverture d'assurance reellement souscrite, et produit une note de conseil opposable.",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verifier": "npm run typecheck && npm run test && npm run lint",
+    "budget": "node scripts/budget-js.mjs",
+    "verifier:complet": "npm run verifier && npm run build && npm run budget"
+  },
+  "dependencies": {
+    "next": "16.3.1",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.1",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "eslint": "9.39.0",
+    "eslint-config-next": "16.3.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}

@@ -1,0 +1,87 @@
+.entete {
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.enteteContenu {
+  max-width: var(--largeur-page);
+  margin: 0 auto;
+  padding: calc(var(--pas) * 5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--pas) * 4);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.marque {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-size: 1.15rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.accroche {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--violet-dark);
+}
+
+.chapo {
+  font-size: 1.15rem;
+  color: var(--muted);
+}
+
+.grille {
+  display: grid;
+  gap: calc(var(--pas) * 4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  margin: calc(var(--pas) * 8) 0;
+}
+
+.carte {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 5);
+  box-shadow: var(--shadow-sm);
+}
+
+.carte h3 {
+  margin-bottom: calc(var(--pas) * 2);
+}
+
+.carte p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.encadre {
+  background: var(--violet-pale);
+  border: 1px solid var(--violet-soft);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 5);
+  margin: calc(var(--pas) * 8) 0;
+}
+
+.encadre p:last-child {
+  margin-bottom: 0;
+}
+
+.chantier {
+  border-top: 1px solid var(--line);
+  margin-top: calc(var(--pas) * 10);
+  padding-top: calc(var(--pas) * 6);
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.pied {
+  border-top: 1px solid var(--line);
+  color: var(--faint);
+  font-size: 0.85rem;
+  padding: calc(var(--pas) * 6) calc(var(--pas) * 5);
+  text-align: center;
+}

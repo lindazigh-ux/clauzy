@@ -1,0 +1,19 @@
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+.env
+.env.*
+!.env.example
+
+.DS_Store
+*.log
+npm-debug.log*
+
+# Aucun document client, sous quelque forme que ce soit, ne doit se retrouver
+# dans ce depot — y compris anonymise (brief §5.4, §13).
+*.clauzy
+/corpus-prive/
