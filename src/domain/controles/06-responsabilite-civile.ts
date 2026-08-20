@@ -47,10 +47,12 @@ export const RESPONSABILITE_CIVILE: Controle[] = [
     responsable: Responsable.IMMOBILIER_ET_ASSURANCE,
     preuveCloture: 'Montant et base de garantie concordants.',
     detecteursObligation: [
-      { pattern: /(?:responsabilité civile|RC).{0,180}(?:euros?|€|million|montant|garantie)/i },
+      // « RC » exige des limites de mot : sans elles, le motif matchait la
+      // séquence « rc » à l’intérieur de « marchandises » ou « commerce ».
+      { pattern: /(?:responsabilité civile|\bRC\b).{0,180}(?:euros?|€|million|montant|garantie)/i },
     ],
     detecteursCouverture: [
-      { pattern: /(?:responsabilité civile|RC exploitation).{0,180}(?:euros?|€|million|montant|limite)/i },
+      { pattern: /(?:responsabilité civile|\bRC exploitation).{0,180}(?:euros?|€|million|montant|limite)/i },
     ],
   },
   {
@@ -69,10 +71,12 @@ export const RESPONSABILITE_CIVILE: Controle[] = [
     responsable: Responsable.IMMOBILIER_ET_ASSURANCE,
     preuveCloture: 'Montant justifié par l’exposition et confirmé par l’assureur.',
     detecteursObligation: [
-      { pattern: /recours des voisins et (?:des )?tiers|voisins et tiers/i },
+      // Les deux ordres se rencontrent en rédaction : « voisins et tiers »
+      // comme « tiers et voisins ».
+      { pattern: /recours des (?:voisins et (?:des )?tiers|tiers et (?:des )?voisins)|voisins et tiers|tiers et voisins/i },
     ],
     detecteursCouverture: [
-      { pattern: /recours des voisins et (?:des )?tiers|dommages aux voisins|tiers lésés/i },
+      { pattern: /recours des (?:voisins et (?:des )?tiers|tiers et (?:des )?voisins)|dommages aux voisins|tiers lésés/i },
     ],
   },
   {

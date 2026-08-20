@@ -568,59 +568,71 @@ export const CAS: readonly CasControle[] = [
 export const documentDuCas = (clause: ClauseTest): string => `${clause.article}\n${clause.texte}`
 
 /**
- * Lacunes de rappel connues du referentiel.
+ * Redactions de rattrapage, verrouillees en non-regression.
  *
- * Ces redactions sont courantes dans les baux et ne sont PAS reconnues par les
- * motifs actuels. Elles ne sont pas corrigees ici : le referentiel est l'actif
- * de la praticienne, et un motif ne se reecrit pas sans arbitrage — un motif
- * elargi produit des faux positifs, qui coutent plus cher qu'un NON_DETECTE.
+ * Chacune a d'abord ete decouverte comme une LACUNE : une tournure courante que
+ * les motifs d'origine ne reconnaissaient pas. Les motifs ont ete elargis, et
+ * ces redactions sont desormais des cas positifs a part entiere.
  *
- * Elles sont donc CONSIGNEES plutot que masquees, et verrouillees par un test :
- * le jour ou un motif est elargi, le test echoue et rappelle de retirer
- * l'entree. Une lacune connue et tracee vaut mieux qu'une lacune ignoree.
+ * Elles restent listees a part pour garder la trace de l'elargissement : si un
+ * motif est un jour resserre pour reduire des faux positifs, c'est ici que la
+ * perte de rappel apparaitra, avec le detail de ce qui cesse d'etre reconnu.
  */
-export type Lacune = {
+export type Variante = {
   readonly controleId: string
   readonly redaction: string
+  /** Ce que le motif d'origine laissait passer. */
   readonly motif: string
 }
 
-export const LACUNES_CONNUES: readonly Lacune[] = [
+export const VARIANTES_COUVERTES: readonly Variante[] = [
   {
     controleId: 'IND-01',
     redaction: 'Toutes les indemnités d’assurance seront versées au Bailleur.',
-    motif: 'le motif exige « toutes indemnités » sans article intercalé',
+    motif: 'le motif d’origine exigeait « toutes indemnités » sans article intercalé',
   },
   {
     controleId: 'IND-01',
     redaction: 'L’ensemble des indemnités d’assurance sera versé au Bailleur.',
-    motif: 'la tournure « l’ensemble des indemnités » n’est pas couverte',
+    motif: 'la tournure « l’ensemble des indemnités » n’était pas couverte',
   },
   {
     controleId: 'RC-03',
     redaction: 'Le recours des tiers et des voisins est garanti à hauteur de 1 500 000 €.',
-    motif: 'le motif fige l’ordre « voisins et tiers » et ne reconnaît pas l’ordre inverse',
+    motif: 'le motif d’origine figeait l’ordre « voisins et tiers »',
   },
   {
     controleId: 'FOR-06',
     redaction: 'La règle proportionnelle de capitaux sera appliquée en cas de sous-évaluation.',
     motif:
-      'le motif exige un déclencheur (inobservation, non-respect, défaut) ou une suite précise, ' +
-      'et laisse passer la règle proportionnelle énoncée seule',
+      'le motif d’origine exigeait un déclencheur exprès et laissait passer la règle ' +
+      'proportionnelle énoncée seule',
   },
   {
     controleId: 'ART-01',
     redaction: 'Les stipulations du bail priment sur celles de la police d’assurance.',
-    motif: 'le motif ne connaît que « prévaut » et « prévalent », pas « priment »',
+    motif: 'le motif d’origine ne connaissait que « prévaut » et « prévalent »',
   },
   {
     controleId: 'SIN-02',
     redaction: 'Le loyer ne subira aucune réduction en cas de destruction partielle.',
-    motif: 'le motif attend le loyer APRÈS la négation, et manque l’ordre inverse',
+    motif: 'le motif d’origine attendait le loyer APRÈS la négation',
   },
   {
     controleId: 'FOR-01',
     redaction: 'Faute de production sous huitaine, le bail sera résilié de plein droit.',
-    motif: 'le motif attend « huit jours » ou « 8 jours », pas « sous huitaine »',
+    motif: 'le motif d’origine attendait « huit jours » ou « 8 jours »',
   },
 ]
+
+/**
+ * Lacunes de rappel encore ouvertes.
+ *
+ * Une tournure courante que les motifs ne reconnaissent pas, et qui n'a pas
+ * encore ete arbitree : elargir un motif produit des faux positifs, qui coutent
+ * plus cher qu'un NON_DETECTE. Consigner vaut mieux que masquer.
+ *
+ * Un test verrouille chaque entree : le jour ou le motif est elargi, il echoue
+ * et rappelle de deplacer la redaction vers VARIANTES_COUVERTES.
+ */
+export const LACUNES_CONNUES: readonly Variante[] = []

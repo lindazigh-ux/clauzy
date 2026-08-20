@@ -25,7 +25,9 @@ export const ARTICULATION_CONTRACTUELLE: Controle[] = [
     responsable: Responsable.JURIDIQUE,
     preuveCloture: 'Clause articulée avec les garanties réellement disponibles.',
     detecteursObligation: [
-      { pattern: /bail.{0,160}(?:prévaut|prévalent).{0,160}(?:police|contrat d.assurance)|insuffisance.{0,120}couverture.{0,120}ne limite/i },
+      // « priment », « prime sur », « l’emportent » : mêmes stipulations que
+      // « prévaut ». « prime » nom commun est exclu par les formes retenues.
+      { pattern: /bail.{0,160}(?:prévaut|prévalent|priment|prime sur|primer sur|l.emporte|l.emportent).{0,160}(?:police|contrat d.assurance)|insuffisance.{0,120}couverture.{0,120}ne limite/i },
     ],
     detecteursCouverture: [
       { pattern: /conditions particulières|conditions générales|exclusions|limites de garantie/i },

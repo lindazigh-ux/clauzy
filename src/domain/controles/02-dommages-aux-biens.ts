@@ -25,7 +25,11 @@ export const DOMMAGES_AUX_BIENS: Controle[] = [
     responsable: Responsable.IMMOBILIER,
     preuveCloture: 'Bail distinguant clairement les biens du bailleur et du preneur.',
     detecteursObligation: [
-      { pattern: /preneur.{0,220}(?:assur|garant|prend à sa charge).{0,220}(?:façades?|vitrines?|portes?|fenêtres?|volets?|toiture|structure|clos et couvert|immeuble)/i },
+      // Fenêtres bornées à la phrase — ni point, ni saut de ligne, exactement
+      // ce que « . » excluait : « preneur » revient des centaines de
+      // fois dans un bail, et chaque occurrence déclenchait une exploration
+      // 220 x 220. Une stipulation ne franchit pas un point.
+      { pattern: /preneur[^.\n\r\u2028\u2029]{0,220}(?:assur|garant|prend à sa charge)[^.\n\r\u2028\u2029]{0,220}(?:façades?|vitrines?|portes?|fenêtres?|volets?|toiture|structure|clos et couvert|immeuble)/i },
     ],
     detecteursCouverture: [
       { pattern: /(?:bâtiment|immeuble|clos et couvert|façade|toiture).{0,140}(?:garanti|assuré|couvert)/i },
@@ -157,7 +161,7 @@ export const DOMMAGES_AUX_BIENS: Controle[] = [
     responsable: Responsable.IMMOBILIER,
     preuveCloture: 'Chaque catégorie de biens est rattachée à son propriétaire dans le bail.',
     detecteursObligation: [
-      { pattern: /preneur.{0,140}(?:assur|garant).{0,80}(?:tous les|l.ensemble des|les)\s+(?:biens|installations|équipements|aménagements)/i },
+      { pattern: /preneur[^.\n\r\u2028\u2029]{0,140}(?:assur|garant)[^.\n\r\u2028\u2029]{0,80}(?:tous les|l.ensemble des|les)\s+(?:biens|installations|équipements|aménagements)/i },
     ],
     detecteursCouverture: [
       { pattern: /(?:biens|installations|équipements|aménagements).{0,120}(?:appartenant à l.assuré|propres à l.assuré|dont il a la garde)/i },

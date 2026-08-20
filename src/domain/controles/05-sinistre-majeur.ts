@@ -48,7 +48,9 @@ export const SINISTRE_MAJEUR: Controle[] = [
     responsable: Responsable.IMMOBILIER,
     preuveCloture: 'Formule de réduction proportionnelle intégrée au bail.',
     detecteursObligation: [
-      { pattern: /(?:sans|aucune).{0,100}(?:diminution|réduction|suspension).{0,60}loyer/i },
+      // Les deux ordres se rencontrent : « aucune réduction de loyer » comme
+      // « le loyer ne subira aucune réduction ».
+      { pattern: /(?:sans|aucune).{0,100}(?:diminution|réduction|suspension).{0,60}loyer|loyer.{0,80}(?:ne (?:subira|pourra|sera|saurait)|sans|aucune).{0,80}(?:diminution|réduction|suspension)/i },
       { pattern: /perte de surface.{0,120}aucune/i },
     ],
     detecteursCouverture: [

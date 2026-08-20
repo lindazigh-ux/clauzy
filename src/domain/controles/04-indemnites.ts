@@ -26,7 +26,10 @@ export const INDEMNITES: Controle[] = [
     preuveCloture: 'Répartition des indemnités par nature de bien et de perte.',
     baseJuridique: 'Code des assurances, article L121-13 : vérifier la nature de l’indemnité, le risque locatif et les droits effectivement opposables avant toute affectation.',
     detecteursObligation: [
-      { pattern: /toutes? indemnités?.{0,200}(?:affectées?|bailleur|privilège|déléguées?|versées?)/i },
+      // L’article intercalé (« Toutes les indemnités ») et la tournure
+      // « l’ensemble des indemnités » sont au moins aussi fréquents que la
+      // forme sans article, seule reconnue jusqu’ici.
+      { pattern: /(?:toutes? (?:les )?indemnités?|l.ensemble des indemnités).{0,200}(?:affectées?|bailleur|privilège|déléguées?|versées?)/i },
     ],
     detecteursCouverture: [
       { pattern: /indemnités?.{0,180}(?:bailleur|preneur|assuré)|bénéficiaire|délégation|créancier privilégié/i },

@@ -25,7 +25,9 @@ export const OBLIGATIONS_FORMELLES: Controle[] = [
     responsable: Responsable.JURIDIQUE,
     preuveCloture: 'Délai raisonnable et mise en demeure intégrés.',
     detecteursObligation: [
-      { pattern: /(?:première demande|huit jours|8 jours).{0,220}(?:résili|plein droit)/i },
+      // « sous huitaine » et « sous quinzaine » sont les formules notariales
+      // les plus répandues pour ce délai.
+      { pattern: /(?:première demande|huit jours|8 jours|huitaine|quinzaine).{0,220}(?:résili|plein droit)/i },
       { pattern: /résili.{0,180}(?:attestation|certificat d.assurance)/i },
     ],
     detecteursCouverture: [],
@@ -130,7 +132,9 @@ export const OBLIGATIONS_FORMELLES: Controle[] = [
     responsable: Responsable.JURIDIQUE,
     preuveCloture: 'Référence à la règle proportionnelle supprimée.',
     detecteursObligation: [
-      { pattern: /(?:inobservation|non-respect|défaut).{0,180}règle proportionnelle|règle proportionnelle.{0,180}(?:dispositions ci-dessus|obligations du preneur|attestation)/i },
+      // La règle proportionnelle est souvent énoncée seule, sans déclencheur
+      // exprès : on la retient dès qu’elle est présentée comme applicable.
+      { pattern: /(?:inobservation|non-respect|défaut).{0,180}règle proportionnelle|règle proportionnelle.{0,180}(?:dispositions ci-dessus|obligations du preneur|attestation|appliqu|sanction|sous-[ée]valuation|sous-estimation)|(?:appliqu|application).{0,80}règle proportionnelle/i },
     ],
     detecteursCouverture: [
       { pattern: /règle proportionnelle|insuffisance de capitaux|déclaration du risque/i },
