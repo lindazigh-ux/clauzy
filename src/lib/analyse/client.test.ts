@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { NOMBRE_CONTROLES } from '@/domain/controles'
 import { BAUX } from '@/domain/corpus/baux'
 
-import { lancerAnalyse, workerDisponible } from './client'
+import { lancerAnalyse, lireFichier, workerDisponible } from './client'
 
 /**
  * Sous Vitest en environnement node, `Worker` n'existe pas : c'est le chemin de
@@ -28,5 +28,21 @@ describe('client d’analyse', () => {
     const { analyse } = await lancerAnalyse([])
     expect(analyse.resultats).toHaveLength(NOMBRE_CONTROLES)
     expect(analyse.synthese.total).toBe(NOMBRE_CONTROLES)
+  })
+
+  it('lit un fichier par le même chemin que l’analyse', async () => {
+    const contenu = new TextEncoder().encode(
+      'ARTICLE 12 — ASSURANCES\nToute franchise demeure à la charge du preneur.',
+    )
+    const { document, dansUnWorker } = await lireFichier(
+      'bail.txt',
+      contenu.buffer as ArrayBuffer,
+      'OBLIGATION',
+    )
+
+    expect(dansUnWorker).toBe(workerDisponible())
+    expect(document.format).toBe('texte')
+    expect(document.role).toBe('OBLIGATION')
+    expect(document.texte).toContain('ARTICLE 12')
   })
 })

@@ -7,16 +7,38 @@
  * lieu sur le poste du praticien (§2).
  */
 import type { Analyse, DocumentAnalyse } from '@/domain/moteur/moteur'
+import type { DocumentImporte, RoleDocument } from '@/lib/import'
 
 export type DemandeAnalyse = {
   readonly type: 'analyser'
-  /** Correlation : plusieurs analyses peuvent se chevaucher. */
+  /** Correlation : plusieurs demandes peuvent se chevaucher. */
   readonly requete: string
   readonly documents: readonly DocumentAnalyse[]
 }
 
-export type ReponseAnalyse =
+/**
+ * Lecture d'un fichier dans le worker.
+ *
+ * Le brief §3 demande d'isoler le parsing : un PDF de 200 pages fige le fil
+ * principal pendant plusieurs secondes, et c'est justement le moment ou le
+ * praticien attend un signe de vie. L'ArrayBuffer est transfere, pas copie.
+ */
+export type DemandeLecture = {
+  readonly type: 'lire'
+  readonly requete: string
+  readonly nom: string
+  readonly donnees: ArrayBuffer
+  readonly role: RoleDocument
+}
+
+export type Demande = DemandeAnalyse | DemandeLecture
+
+export type Reponse =
   | { readonly type: 'resultat'; readonly requete: string; readonly analyse: Analyse }
+  | { readonly type: 'document'; readonly requete: string; readonly document: DocumentImporte }
   | { readonly type: 'erreur'; readonly requete: string; readonly message: string }
 
-export type { Analyse, DocumentAnalyse }
+/** Conserve pour les appelants existants. */
+export type ReponseAnalyse = Reponse
+
+export type { Analyse, DocumentAnalyse, DocumentImporte, RoleDocument }
