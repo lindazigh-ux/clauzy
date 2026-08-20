@@ -17,7 +17,7 @@ Le phasage est décrit au §12 du brief.
 | Lot | État |
 | --- | --- |
 | **L0** — squelette, tokens, couche réseau isolée, test anti-fuite | **terminé** |
-| **L1** — import, segmentation, moteur des 40 contrôles | référentiel intégré ; moteur à écrire |
+| **L1** — segmentation, moteur des 40 contrôles, corpus | **moteur terminé** ; import de fichiers à brancher |
 | L2 → L8 | à venir |
 
 ### Ce que L0 met en place
@@ -88,13 +88,79 @@ la raison pour laquelle il n'existe pas de types `Obligation` / `Couverture`
 parallèles : le référentiel porte déjà ce vocabulaire, et un second modèle
 dériverait du premier.
 
-### Prochaine étape — le moteur (L1)
+### Le moteur
 
-Il reste à écrire : la segmentation du bail en articles et alinéas avec
-conservation des offsets, les extracteurs de valeurs (durées, montants,
-pourcentages, dates), le rapprochement et le seuil de confiance, le tout dans un
-Web Worker. Plus le corpus synthétique de 12 à 15 baux (§5.4) — **jamais un
-document client réel, même anonymisé.**
+`src/domain/moteur/` — quatre couches, dans l'ordre du §5.3.
+
+**Segmentation** (`segmentation.ts`) — découpe en articles et alinéas. Les
+offsets sont **absolus et conservés de bout en bout** : c'est la condition de
+l'ancrage natif des commentaires Word au passage original (§7). On ne recolle
+pas un commentaire par recherche de texte, deux clauses pouvant être
+rigoureusement identiques. Le découpage est prudent : mieux vaut un gros segment
+qu'un titre inventé.
+
+**Extracteurs** (`extracteurs.ts`) — durées, montants, pourcentages, dates, en
+chiffres comme en toutes lettres. « vingt-quatre (24) mois » est lu, et rejeté
+si les deux formes se contredisent. Dans le doute, on n'extrait pas : une valeur
+inventée produirait un écart chiffré faux, pire qu'une absence de chiffre.
+
+**Confiance** (`confiance.ts`) — le référentiel ne pondère aucun détecteur : les
+40 contrôles s'appuient sur des motifs de poids 1, et 31 n'en ont qu'un seul. Un
+score proportionnel serait donc binaire, c'est-à-dire le booléen que le §5.3
+interdit. La confiance vient de la **qualité de la preuve** : localisation dans
+un article dont l'intitulé correspond, étendue de la correspondance, présence
+d'une négation à proximité, corroboration entre articles. Chaque signal est
+multiplicatif, borné et **nommé** — le praticien doit pouvoir lire *pourquoi* un
+contrôle ressort « à vérifier manuellement ».
+
+**Moteur** (`moteur.ts`) — part de `squeletteResultats()` et fait évoluer les
+statuts. Le statut dépend de la `Nature` du contrôle :
+
+| Nature | rien trouvé | trouvé, sans pièce | trouvé, pièce muette | trouvé, pièce probante |
+| --- | --- | --- | --- | --- |
+| `CROISEMENT` | `ABSENT_DU_BAIL` | `NON_DETECTE` | `ECART` | `CONFORME` |
+| `DOUBLE` | `ABSENT_DU_BAIL` | `ECART` | `ECART` | `CONFORME` |
+| `TRANSFERT_BAIL` | `ABSENT_DU_BAIL` | `ECART` | `ECART` | `ECART` |
+| `FORMALISME` | `ABSENT_DU_BAIL` | `ECART` | `ECART` | `ECART` |
+
+Une règle mérite d'être signalée : **une pièce qui couvre le sujet en deçà de ce
+qui est exigé ne vaut pas conformité.** Sans cette comparaison chiffrée, RC-02
+ressortirait `CONFORME` parce que la police mentionne la garantie, alors qu'elle
+plafonne à 3 M€ contre 8 M€ exigés — c'est l'exemple même du §7, et un faux
+positif de conformité est aussi grave qu'un faux négatif.
+
+L'analyse tourne dans un **Web Worker** (`src/lib/analyse/`), avec un repli
+direct hors navigateur. Le repli est explicite : `lancerAnalyse()` dit lequel des
+deux chemins a servi, pour qu'une régression ne se traduise pas par une
+interface gelée sans que personne ne le voie.
+
+### Le corpus synthétique
+
+`src/domain/corpus/` — **aucun document client réel, même anonymisé** (§5.4,
+§13). Tout est inventé : enseignes, adresses, montants, références de police.
+
+- `cas.ts` — un cas positif et un cas négatif **par contrôle**, soit 80 clauses
+  (§14). Le négatif porte sur le même sujet, rédigé sainement : un négatif hors
+  sujet ne prouverait rien. Les clauses sont écrites comme des stipulations que
+  la praticienne reconnaîtrait, non comme des appâts à expression régulière —
+  sans quoi le corpus ne testerait que lui-même.
+- `baux.ts` — six baux complets couvrant les six rédactions nommées au §5.4 :
+  centre commercial, bureaux, logistique, atypique long, minimaliste,
+  anglo-saxon. Plus deux jeux de conditions particulières, l'un complet, l'autre
+  lacunaire. **Le §5.4 en demande 12 à 15** : les six profils sont couverts, il
+  reste à en décliner des variantes.
+
+### Lacunes de rappel connues
+
+Le corpus a mis au jour sept rédactions courantes que les motifs actuels ne
+reconnaissent pas — « Toutes **les** indemnités » (IND-01), « priment » au lieu
+de « prévaut » (ART-01), « sous huitaine » (FOR-01)…
+
+Elles ne sont **pas corrigées** : un motif ne se réécrit pas sans arbitrage, et
+un motif élargi produit des faux positifs, qui coûtent plus cher qu'un
+`NON_DETECTE`. Elles sont donc consignées dans `LACUNES_CONNUES` et verrouillées
+par un test : le jour où un motif est élargi, le test échoue et rappelle de
+retirer l'entrée. Une lacune connue et tracée vaut mieux qu'une lacune ignorée.
 
 ---
 
@@ -159,12 +225,15 @@ src/
     globals.css            tokens du design system (§8)
     securite/              page /securite (§2)
   domain/
+    moteur/                segmentation, extracteurs, confiance, moteur (§5.3)
+    corpus/                corpus synthétique — jamais un document réel (§5.4)
     controles/             référentiel des 40 contrôles (§5) — repris verbatim
       types.ts             Controle, Famille, Nature, Statut, Detecteur
       01-*.ts … 10-*.ts    un fichier par famille
       index.ts             REFERENTIEL, squeletteResultats(), verifierReferentiel()
       referentiel.test.ts  protection de l'actif principal
   lib/
+    analyse/               Web Worker d'analyse (§3)
     net/                   unique surface réseau (§2)
 scripts/
   budget-js.mjs            budget de performance (§3, §14)
