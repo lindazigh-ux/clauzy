@@ -51,6 +51,13 @@ export type Evaluation = {
   readonly correspondances: readonly Correspondance[]
   readonly base: number
   readonly signaux: readonly Signal[]
+  /**
+   * La preuve est-elle assez etoffee pour trancher ?
+   *
+   * Distincte de la confiance : on peut avoir trouve la clause avec certitude
+   * et n'avoir, pour le dire, que deux mots qui situent le sujet.
+   */
+  readonly substantielle: boolean
 }
 
 /**
@@ -111,6 +118,52 @@ const signalLocalisation = (
     explication: 'la clause a été trouvée hors d’un article traitant du sujet',
   }
 }
+
+/**
+ * Une correspondance tombée dans l'INTITULÉ d'un article n'est pas une preuve.
+ *
+ * « ARTICLE 2 — DESTINATION » a suffi à faire conclure un écart sur l'activité
+ * déclarée. Un titre annonce un sujet, il ne stipule rien — et un rapport qui
+ * cite un titre comme la clause en cause est inexploitable.
+ *
+ * La ligne de titre est la première du segment, celui-ci étant découpé titre
+ * compris.
+ */
+const dansLIntitule = (correspondance: Correspondance): boolean => {
+  const { segment } = correspondance
+  if (segment.titre === null) return false
+  const finDuTitre = segment.texte.indexOf('\n')
+  if (finDuTitre === -1) return false
+  return correspondance.debut - segment.debut < finDuTitre
+}
+
+/**
+ * Une correspondance de quelques mots situe le sujet ; elle n'établit pas
+ * l'obligation.
+ *
+ * Le moteur affirmait un écart sur l'extrait « locaux loués » — treize
+ * caractères, sans verbe, sans obligation. Ce n'est pas faux : c'est
+ * insuffisant. La clause est bien là, et la CONFIANCE de l'avoir trouvée reste
+ * entière ; ce qui manque, c'est de quoi CONCLURE.
+ *
+ * D'où deux notions distinctes, et c'est la distinction qui compte : la
+ * confiance dit « j'ai trouvé », la substance dit « j'ai de quoi trancher ».
+ * Sans substance, le contrôle ressort « à vérifier manuellement » — ce qui est
+ * exactement le comportement recherché : signaler l'incertitude plutôt que
+ * trancher à tort.
+ */
+const SUBSTANCE_MINIMALE = 20
+
+const substantielle = (correspondances: readonly Correspondance[]): boolean =>
+  correspondances.some((c) => c.texte.trim().length >= SUBSTANCE_MINIMALE)
+
+const signalSubstance = (correspondances: readonly Correspondance[]): Signal => ({
+  libelle: 'substance',
+  facteur: 1,
+  explication: substantielle(correspondances)
+    ? 'la correspondance porte sur une stipulation, pas sur un fragment'
+    : 'la correspondance ne porte que sur quelques mots : elle situe le sujet sans établir l’obligation',
+})
 
 const signalEtendue = (correspondances: readonly Correspondance[]): Signal => {
   const plusCourte = Math.min(...correspondances.map((c) => c.texte.length))
@@ -191,25 +244,31 @@ export function evaluer(
     if (aMatche) poidsRetenus.push(detecteur.poids ?? 1)
   }
 
-  if (correspondances.length === 0) {
-    return { confiance: 0, correspondances: [], base: 0, signaux: [] }
+  // Un intitulé d'article annonce un sujet ; il ne stipule rien. Ce qui n'a
+  // été trouvé que dans un titre n'est pas une preuve.
+  const retenues = correspondances.filter((c) => !dansLIntitule(c))
+
+  if (retenues.length === 0) {
+    return { confiance: 0, correspondances: [], base: 0, signaux: [], substantielle: false }
   }
 
   const base = combinerPoids(poidsRetenus) * 100
 
   const signaux = [
-    signalLocalisation(correspondances, famille),
-    signalEtendue(correspondances),
-    signalNegation(correspondances),
-    signalCorroboration(correspondances),
+    signalLocalisation(retenues, famille),
+    signalSubstance(retenues),
+    signalEtendue(retenues),
+    signalNegation(retenues),
+    signalCorroboration(retenues),
   ].filter((signal): signal is Signal => signal !== null)
 
   const confiance = signaux.reduce((score, signal) => score * signal.facteur, base)
 
   return {
     confiance: Math.round(Math.min(100, Math.max(0, confiance))),
-    correspondances,
+    correspondances: retenues,
     base: Math.round(base),
     signaux,
+    substantielle: substantielle(retenues),
   }
 }

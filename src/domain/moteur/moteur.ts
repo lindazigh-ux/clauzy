@@ -239,6 +239,26 @@ const decider = (
     }
   }
 
+  // Dernière marche avant d'affirmer un écart. La clause est bien là — la
+  // confiance le dit — mais si elle n'a été repérée que sur quelques mots,
+  // cela situe le sujet sans établir l'obligation. Le moteur affirmait ainsi
+  // un écart sur l'extrait « locaux loués » : treize caractères, sans verbe.
+  //
+  // La garde ne joue QU'ICI : sur un TRANSFERT_BAIL ou un FORMALISME, le
+  // défaut vient de la rédaction et se conclut sur le document source seul
+  // (§5.3) ; et quand une garantie soutient le contrôle, c'est elle qui fait
+  // preuve, pas la longueur du motif.
+  if (!obligation.substantielle) {
+    const extrait = obligation.correspondances[0]?.texte.trim() ?? ''
+    return {
+      statut: Statut.NON_DETECTE,
+      motif:
+        `Le sujet est repéré dans le document source, mais sur quelques mots seulement ` +
+        `(« ${extrait} ») : cela situe la clause sans établir l’obligation. ` +
+        `À lire sur le document avant de conclure.`,
+    }
+  }
+
   return {
     statut: Statut.ECART,
     motif: 'Obligation trouvée dans le document source, non soutenue par les pièces produites.',
@@ -427,7 +447,7 @@ export function analyser(documents: readonly DocumentAnalyse[]): Analyse {
     const obligation = evaluer(controle.detecteursObligation, segmentsObligation, controle.famille)
     const couverture = pieceCouvertureFournie
       ? evaluer(controle.detecteursCouverture, segmentsCouverture, controle.famille)
-      : { confiance: 0, correspondances: [], base: 0, signaux: [] }
+      : { confiance: 0, correspondances: [], base: 0, signaux: [], substantielle: false }
 
     const chiffrage = chiffrer(obligation, couverture)
     const appui = appuiPourControle(controle.id, rapprochements)

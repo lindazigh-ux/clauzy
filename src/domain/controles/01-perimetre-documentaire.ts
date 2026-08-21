@@ -47,7 +47,13 @@ export const PERIMETRE_DOCUMENTAIRE: Controle[] = [
     responsable: Responsable.IMMOBILIER_ET_ASSURANCE,
     preuveCloture: 'Adresse strictement concordante dans le bail et la police.',
     detecteursObligation: [
-      { pattern: /locaux loués|local commercial|adresse des lieux|situés? à/i },
+      {
+        // « locaux loués » nu situait le sujet sans rien établir : le moteur
+        // affirmait un écart sur cet extrait de treize caractères. On exige
+        // désormais la stipulation qui désigne réellement les lieux.
+        pattern:
+          /(?:locaux|lieux) lou[ée]s[^.\n\r]{0,80}(?:se composent|comprennent|sont situ[ée]s|sis|d.une surface|situ[ée]s? [àa])|local commercial[^.\n\r]{0,60}(?:sis|situ[ée])|adresse des lieux|lieux lou[ée]s sont situ[ée]s/i,
+      },
     ],
     detecteursCouverture: [
       { pattern: /site assur[eé]|adresse du risque|situation du risque|lieux assurés/i },
@@ -69,7 +75,15 @@ export const PERIMETRE_DOCUMENTAIRE: Controle[] = [
     responsable: Responsable.IMMOBILIER_ET_ASSURANCE,
     preuveCloture: 'Liste d’activités concordante entre bail et conditions particulières.',
     detecteursObligation: [
-      { pattern: /destination|activit[eé]|usage des locaux|commerce de|exploitation de/i },
+      {
+        // Le motif d'origine reconnaissait « destination » et « activité » nus.
+        // Il ne trouvait donc la clause que par le TITRE de l'article — et un
+        // titre annonce un sujet, il ne stipule rien. Reconnaître la
+        // stipulation elle-même : « les lieux sont affectés à… », « les locaux
+        // sont destinés à… », qui sont les rédactions réelles.
+        pattern:
+          /(?:lieux|locaux)[^.\n\r]{0,60}(?:affect[ée]s?|destin[ée]s?)\s+[àa]|destination des (?:lieux|locaux)|activit[ée]s? (?:exerc[ée]e?s?|autoris[ée]e?s?|d[ée]clar[ée]e?s?)|usage des locaux|commerce de|exploitation de/i,
+      },
     ],
     detecteursCouverture: [
       { pattern: /activit[eé] assur[eé]e|activit[eé]\s*:|profession déclarée|nature du risque/i },
