@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { LIBELLE_STATUT, Statut } from '../controles'
+import { LIBELLE_STATUT, NOMBRE_CONTROLES, Statut } from '../controles'
 import { garantiesRattachees, verifierRattachements } from '../garanties/rattachement'
 import { GARANTIE_PAR_ID } from '../garanties/nomenclature'
 import { analyser } from './moteur'
@@ -158,9 +158,9 @@ describe('l’analyse expose le rapprochement', () => {
     expect(resultat.rapprochements.every((r) => r.conclusion.length > 20)).toBe(true)
   })
 
-  it('rend toujours les 40 résultats, quoi qu’il arrive au rapprochement', () => {
+  it('rend toujours un résultat par contrôle, quoi qu’il arrive au rapprochement', () => {
     // La regle du §5.2 ne cede devant aucune amelioration du moteur.
-    expect(analyse(BAIL_ORDINAIRE, POLICE_QUI_REPOND).resultats).toHaveLength(40)
-    expect(analyse('', null).resultats).toHaveLength(40)
+    expect(analyse(BAIL_ORDINAIRE, POLICE_QUI_REPOND).resultats).toHaveLength(NOMBRE_CONTROLES)
+    expect(analyse('', null).resultats).toHaveLength(NOMBRE_CONTROLES)
   })
 })

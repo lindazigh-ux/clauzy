@@ -17,11 +17,11 @@ import styles from '../site.module.css'
 import propres from './controles.module.css'
 
 export const metadata: Metadata = {
-  title: 'Les 40 contrôles',
+  title: `Les ${NOMBRE_CONTROLES} contrôles`,
   description:
-    'Le référentiel complet appliqué à chaque bail commercial : 40 contrôles, 10 familles, de la renonciation à recours aux obligations formelles. Chacun avec sa conséquence, sa correction et sa rédaction de remplacement.',
+    `Le référentiel complet appliqué à chaque bail commercial : ${NOMBRE_CONTROLES} contrôles, ${Object.values(Famille).length} familles, des risques locatifs aux obligations formelles. Chacun avec sa conséquence, sa correction et sa rédaction de remplacement.`,
   ...partage({
-    titre: 'Les 40 contrôles — Clauzy',
+    titre: `Les ${NOMBRE_CONTROLES} contrôles — Clauzy`,
     description:
       'Le référentiel complet, famille par famille : ce que chaque clause doit faire, ce qu’on risque, et la rédaction de remplacement.',
     chemin: '/controles',
@@ -57,7 +57,7 @@ export default function IndexControles() {
       <FilStructure
         etapes={[
           { nom: 'Accueil', chemin: '/' },
-          { nom: 'Les 40 contrôles', chemin: '/controles' },
+          { nom: `Les ${NOMBRE_CONTROLES} contrôles`, chemin: '/controles' },
         ]}
       />
 

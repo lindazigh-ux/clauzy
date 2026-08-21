@@ -1,6 +1,7 @@
 import { Famille, Nature, Statut, type Controle } from './types';
 
 import { PERIMETRE_DOCUMENTAIRE } from './01-perimetre-documentaire';
+import { GARANTIES_FONDAMENTALES } from './11-garanties-fondamentales';
 import { DOMMAGES_AUX_BIENS } from './02-dommages-aux-biens';
 import { RENONCIATION_RECOURS } from './03-renonciation-recours';
 import { INDEMNITES } from './04-indemnites';
@@ -12,14 +13,20 @@ import { OBLIGATIONS_FORMELLES } from './09-obligations-formelles';
 import { ARTICULATION_CONTRACTUELLE } from './10-articulation-contractuelle';
 
 /**
- * Référentiel complet — 40 contrôles.
+ * Référentiel complet.
  *
  * L'ordre de ce tableau est l'ordre de lecture de la matrice dans le rapport :
- * on part du périmètre documentaire (qui conditionne tout le reste), on descend
- * vers les garanties, puis vers les procédures.
+ * on part du périmètre documentaire (qui conditionne tout le reste), on passe
+ * aux garanties fondamentales — la garantie exigée est-elle souscrite ? —, on
+ * descend vers le détail des couvertures, puis vers les procédures.
+ *
+ * Le référentiel GRANDIT ; il ne se réécrit pas. Aucun identifiant existant
+ * n'est jamais renuméroté, même après suppression d'un contrôle (§13) : une
+ * référence citée dans un rapport de l'an dernier doit garder son sens.
  */
 export const REFERENTIEL: readonly Controle[] = Object.freeze([
   ...PERIMETRE_DOCUMENTAIRE,
+  ...GARANTIES_FONDAMENTALES,
   ...DOMMAGES_AUX_BIENS,
   ...RENONCIATION_RECOURS,
   ...INDEMNITES,

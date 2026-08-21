@@ -10,6 +10,8 @@
  * (`abonnement.checkout`) : un plan affiche ici et refuse par la couche reseau
  * serait une impasse a la caisse.
  */
+import { NOMBRE_CONTROLES } from '@/domain/controles'
+
 export type IdPlan = 'ESSAI' | 'PRATICIEN' | 'CABINET' | 'GRANDS_COMPTES'
 
 export type Plan = {
@@ -41,7 +43,7 @@ export const PLANS: readonly Plan[] = [
     annuel: 0,
     pourQui: 'Pour juger sur pièces, avec vos propres baux.',
     inclus: [
-      'Les 40 contrôles, sans exception',
+      `Les ${NOMBRE_CONTROLES} contrôles, sans exception`,
       '3 dossiers',
       'Poste de travail complet : reprise à la main, rattachement, observations',
       'Export Word et PDF, en filigrane',

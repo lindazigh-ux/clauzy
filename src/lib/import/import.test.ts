@@ -3,6 +3,7 @@ import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
+import { NOMBRE_CONTROLES } from '@/domain/controles'
 import { analyser } from '@/domain/moteur/moteur'
 import { segmenter } from '@/domain/moteur/segmentation'
 
@@ -71,11 +72,11 @@ describe('lecture d’un PDF', () => {
     expect(segments.some((s) => s.numero === '12')).toBe(true)
   })
 
-  it('alimente le moteur, qui rend ses 40 résultats', async () => {
+  it('alimente le moteur, qui rend un résultat par contrôle', async () => {
     const document = await lireDocument('bail-minimal.pdf', fixture('bail-minimal.pdf'))
     const analyse = analyser(documentsAnalysables([document]))
 
-    expect(analyse.resultats).toHaveLength(40)
+    expect(analyse.resultats).toHaveLength(NOMBRE_CONTROLES)
     // La franchise à la charge du preneur est l’écart que ce bail contient.
     expect(analyse.resultats.find((r) => r.controleId === 'DAB-05')?.statut).toBe('ECART')
   })

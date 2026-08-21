@@ -60,6 +60,7 @@ export type Evaluation = {
  */
 const MOTS_CLES_FAMILLE: Record<Famille, readonly string[]> = {
   [Famille.PERIMETRE_DOCUMENTAIRE]: ['annexe', 'piece', 'document', 'designation', 'etat des lieux'],
+  [Famille.GARANTIES_FONDAMENTALES]: ['assurance', 'garantie', 'risque locatif', 'responsabilite', 'police'],
   [Famille.DOMMAGES_AUX_BIENS]: ['assurance', 'garantie', 'incendie', 'dommage', 'risque'],
   [Famille.RENONCIATION_RECOURS]: ['renonciation', 'recours', 'subrogation', 'assurance'],
   [Famille.INDEMNITES]: ['indemnite', 'sinistre', 'assurance', 'reconstruction'],

@@ -6,7 +6,7 @@
  * orpheline — invisible dans la navigation, absente du plan de site, et donc
  * jamais indexee. Un test verifie qu'aucune route ne manque a l'appel.
  */
-import { Famille, LIBELLE_FAMILLE } from '@/domain/controles'
+import { Famille, LIBELLE_FAMILLE, NOMBRE_CONTROLES } from '@/domain/controles'
 
 /**
  * Origine canonique. Elle sert aux URL absolues : Open Graph, plan de site,
@@ -72,6 +72,7 @@ export type Page = {
 /** Slug d'une famille, tel qu'il apparait dans l'URL. */
 export const SLUG_FAMILLE: Record<Famille, string> = {
   [Famille.PERIMETRE_DOCUMENTAIRE]: 'perimetre-documentaire',
+  [Famille.GARANTIES_FONDAMENTALES]: 'garanties-fondamentales',
   [Famille.DOMMAGES_AUX_BIENS]: 'dommages-aux-biens',
   [Famille.RENONCIATION_RECOURS]: 'renonciation-a-recours',
   [Famille.INDEMNITES]: 'indemnites',
@@ -90,7 +91,15 @@ export const FAMILLE_PAR_SLUG: ReadonlyMap<string, Famille> = new Map(
 export const PAGES: readonly Page[] = [
   { chemin: '/', titre: 'Le bail promet, la police suit-elle ?', priorite: 1, rubrique: 'produit' },
   { chemin: '/methode', titre: 'La méthode', nav: 'Méthode', priorite: 0.9, rubrique: 'produit' },
-  { chemin: '/controles', titre: 'Les 40 contrôles', nav: 'Contrôles', priorite: 0.9, rubrique: 'produit' },
+  {
+    chemin: '/controles',
+    // Dérivé, jamais recopié : le référentiel grandit, et une page qui
+    // annonce un chiffre que le produit n'applique plus est un mensonge.
+    titre: `Les ${NOMBRE_CONTROLES} contrôles`,
+    nav: 'Contrôles',
+    priorite: 0.9,
+    rubrique: 'produit',
+  },
   ...Object.values(Famille).map((famille) => ({
     chemin: `/controles/${SLUG_FAMILLE[famille]}`,
     titre: LIBELLE_FAMILLE[famille],

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import { REFERENTIEL, type Gravite } from '@/domain/controles'
+import { REFERENTIEL, type Gravite, NOMBRE_CONTROLES } from '@/domain/controles'
 import type { Observation, Perimetre as PerimetreDossier } from '@/domain/dossier'
 
 import styles from '../dossier.module.css'
@@ -193,12 +193,12 @@ export function PanneauObservations({
     <section className={styles.carte} aria-labelledby="titre-observations">
       <h2 id="titre-observations">
         Observations libres
-        <span className={styles.compteur}>hors des 40 contrôles</span>
+        <span className={styles.compteur}>hors des {NOMBRE_CONTROLES} contrôles</span>
       </h2>
 
       {observations.length === 0 ? (
         <p className={styles.vide}>
-          Un point qui ne relève d’aucun des 40 contrôles mérite quand même d’être écrit. Ajoutez-le
+          Un point qui ne relève d’aucun des {NOMBRE_CONTROLES} contrôles mérite quand même d’être écrit. Ajoutez-le
           ici : il figurera au rapport.
         </p>
       ) : (

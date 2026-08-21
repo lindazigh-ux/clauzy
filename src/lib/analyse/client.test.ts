@@ -24,7 +24,7 @@ describe('client d’analyse', () => {
     expect(analyse.resultats).toHaveLength(NOMBRE_CONTROLES)
   })
 
-  it('rend les 40 résultats quel que soit le chemin', async () => {
+  it('rend un résultat par contrôle quel que soit le chemin', async () => {
     const { analyse } = await lancerAnalyse([])
     expect(analyse.resultats).toHaveLength(NOMBRE_CONTROLES)
     expect(analyse.synthese.total).toBe(NOMBRE_CONTROLES)

@@ -207,6 +207,55 @@ export const CAS_METIER: readonly CasMetier[] = [
     pourquoi:
       'Une modalité d’indemnisation ne crée aucune couverture. Un bien non assuré ne le devient pas parce que la police indemnise en valeur à neuf.',
   },
+
+  // -------------------------------------------------------------------
+  // Environnement : la RC exploitation ne repond pas de la pollution
+  // -------------------------------------------------------------------
+  {
+    id: 'ENV-C1',
+    intitule: 'La dépollution n’est pas de la RC exploitation',
+    cote: 'OBLIGATION',
+    texte:
+      'Le Preneur garantira les frais de dépollution des sols résultant d’une atteinte à l’environnement causée par son exploitation.',
+    attendues: ['RC_ATTEINTE_ENVIRONNEMENT'],
+    interdites: ['RC_EXPLOITATION'],
+    pourquoi:
+      'La RC exploitation exclut presque toujours l’atteinte à l’environnement, qui fait l’objet d’une garantie et d’un capital séparés. Valider une exigence de dépollution sur la ligne RC exploitation laisse le preneur découvert sur le sinistre le plus coûteux de la famille.',
+  },
+  {
+    id: 'ENV-C2',
+    intitule: 'La police nomme sa garantie environnement',
+    cote: 'COUVERTURE',
+    texte: 'Responsabilité civile atteinte à l’environnement accidentelle : 1 000 000 € par sinistre.',
+    attendues: ['RC_ATTEINTE_ENVIRONNEMENT'],
+    interdites: [],
+    pourquoi:
+      'Le capital de l’atteinte à l’environnement est presque toujours très inférieur à celui de la RC exploitation : les confondre fausse aussi le chiffrage de l’écart.',
+  },
+
+  // -------------------------------------------------------------------
+  // Travaux : deux periodes, deux garanties
+  // -------------------------------------------------------------------
+  {
+    id: 'TRV-C1',
+    intitule: 'La dommages-ouvrage joue après réception',
+    cote: 'OBLIGATION',
+    texte:
+      'Le Preneur souscrira une assurance dommages-ouvrage préalablement à l’ouverture du chantier.',
+    attendues: ['DOMMAGES_OUVRAGE'],
+    interdites: ['TOUS_RISQUES_CHANTIER'],
+    pourquoi:
+      'La dommages-ouvrage préfinance les désordres décennaux APRÈS réception. La tous risques chantier couvre l’ouvrage PENDANT les travaux. Un bail qui n’exige que l’une laisse l’autre période découverte, et l’outil ne doit pas masquer ce trou en les tenant pour équivalentes.',
+  },
+  {
+    id: 'TRV-C2',
+    intitule: 'La tous risques chantier joue pendant les travaux',
+    cote: 'COUVERTURE',
+    texte: 'Tous risques chantier : garantie de l’ouvrage en cours jusqu’à réception.',
+    attendues: ['TOUS_RISQUES_CHANTIER'],
+    interdites: ['DOMMAGES_OUVRAGE'],
+    pourquoi: 'Symétrique du cas précédent.',
+  },
 ]
 
 export const CAS_PAR_ID: ReadonlyMap<string, CasMetier> = new Map(

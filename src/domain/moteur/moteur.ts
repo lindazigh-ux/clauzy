@@ -81,7 +81,7 @@ export type Synthese = {
   readonly conformes: number
   readonly sansObjet: number
   readonly aVerifier: number
-  /** « 40 contrôles appliqués — 6 écarts, 21 conformes, 4 sans objet, 9 à vérifier manuellement. » */
+  /** « 45 contrôles appliqués — 6 écarts, 21 conformes, 4 sans objet, 14 à vérifier manuellement. » */
   readonly phrase: string
 }
 

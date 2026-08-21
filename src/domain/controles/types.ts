@@ -16,6 +16,13 @@
 
 export enum Famille {
   PERIMETRE_DOCUMENTAIRE = 'PERIMETRE_DOCUMENTAIRE',
+  /**
+   * AJOUT : le referentiel d'origine ne posait jamais la question de base —
+   * la garantie exigee est-elle souscrite ? Il verifiait la redaction, les
+   * montants et les procedures, mais aucun controle ne portait sur les risques
+   * locatifs, l'obligation d'assurance la plus fondamentale d'un bail.
+   */
+  GARANTIES_FONDAMENTALES = 'GARANTIES_FONDAMENTALES',
   DOMMAGES_AUX_BIENS = 'DOMMAGES_AUX_BIENS',
   RENONCIATION_RECOURS = 'RENONCIATION_RECOURS',
   INDEMNITES = 'INDEMNITES',
@@ -29,6 +36,7 @@ export enum Famille {
 
 export const LIBELLE_FAMILLE: Record<Famille, string> = {
   [Famille.PERIMETRE_DOCUMENTAIRE]: 'Périmètre documentaire',
+  [Famille.GARANTIES_FONDAMENTALES]: 'Garanties fondamentales',
   [Famille.DOMMAGES_AUX_BIENS]: 'Dommages aux biens',
   [Famille.RENONCIATION_RECOURS]: 'Renonciation à recours',
   [Famille.INDEMNITES]: 'Indemnités',
@@ -138,9 +146,10 @@ export type Controle = {
 // ---------------------------------------------------------------------------
 
 /**
- * RÈGLE ABSOLUE DU MOTEUR : le rapport renvoie TOUJOURS les 40 résultats.
+ * RÈGLE ABSOLUE DU MOTEUR : le rapport renvoie TOUJOURS un résultat par contrôle.
  *
- * Un contrôle qui n'a pas matché ne disparaît jamais — il ressort en NON_DETECTE.
+ * Le référentiel peut grandir ; le tableau de résultats suit, et un contrôle qui
+ * n'a pas matché ne disparaît jamais — il ressort en NON_DETECTE.
  * Un contrôle absent du rapport est lu comme « pas de problème », ce qui est faux :
  * la clause n'a simplement pas été trouvée. C'est un faux négatif silencieux, et
  * c'est le pire mode de défaillance possible sur un outil qui touche au devoir de conseil.

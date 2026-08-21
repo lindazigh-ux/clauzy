@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
@@ -253,9 +253,58 @@ describe('les mentions de l’éditeur', () => {
   })
 })
 
+describe('aucun chiffre du référentiel n’est recopié à la main', () => {
+  /**
+   * Le referentiel grandit — la famille des garanties fondamentales lui a ete
+   * ajoutee parce qu'aucun controle ne portait sur les risques locatifs. Le
+   * jour ou c'est arrive, dix-huit endroits du site annonçaient encore
+   * « 40 contrôles » en dur : des titres, des descriptions de partage, une FAQ,
+   * un plan tarifaire, et jusqu'au titre d'une section du rapport Word.
+   *
+   * Rien de tout cela n'aurait fait echouer un test. Ce test-ci le fait.
+   */
+  const RACINES = ['src/contenu', 'src/app', 'src/lib/export']
+  const INTERDITS = /\b40 (?:contrôles|résultats)\b/
+
+  const fichiers = (repertoire: string): string[] =>
+    readdirSync(repertoire, { withFileTypes: true }).flatMap((entree) => {
+      const complet = join(repertoire, entree.name)
+      if (entree.isDirectory()) return fichiers(complet)
+      if (!/\.tsx?$/.test(entree.name) || entree.name.includes('.test.')) return []
+      return [complet]
+    })
+
+  const sources = RACINES.flatMap((racine) => fichiers(join(process.cwd(), racine)))
+
+  it('inspecte bien les sources visibles par le client', () => {
+    expect(sources.length).toBeGreaterThan(20)
+  })
+
+  it.each(sources.map((f) => [f.slice(process.cwd().length + 1), f]))(
+    '%s dérive le compte au lieu de l’écrire',
+    (_nom, fichier) => {
+      const source = readFileSync(fichier as string, 'utf8')
+      const fautives = source
+        .split('\n')
+        .map((ligne, index) => ({ ligne, numero: index + 1 }))
+        .filter(({ ligne }) => INTERDITS.test(ligne))
+        // Un commentaire qui RACONTE l'histoire des 40 d'origine est légitime.
+        .filter(({ ligne }) => !/^\s*(?:\*|\/\/)/.test(ligne))
+
+      expect(
+        fautives.map((f) => `ligne ${f.numero} : ${f.ligne.trim().slice(0, 90)}`),
+        'utiliser NOMBRE_CONTROLES plutôt que de recopier le chiffre',
+      ).toEqual([])
+    },
+  )
+})
+
 describe('les chiffres annoncés au public', () => {
   it('viennent tous du référentiel, jamais d’une constante recopiée', () => {
     expect(NOMBRE_CONTROLES).toBe(REFERENTIEL.length)
-    expect(NOMBRE_CONTROLES).toBe(40)
+    // Le référentiel grandit ; il ne rétrécit pas. Figer le nombre
+    // interdirait d'ajouter le contrôle manquant du jour où l'on s'aperçoit
+    // qu'il manque — ce qui est précisément arrivé aux risques locatifs.
+    expect(NOMBRE_CONTROLES).toBeGreaterThanOrEqual(40)
   })
 })

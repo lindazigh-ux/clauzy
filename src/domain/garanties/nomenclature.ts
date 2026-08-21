@@ -305,6 +305,97 @@ export const NOMENCLATURE: readonly Garantie[] = [
     confusions: [],
   },
 
+  {
+    id: 'RC_ATTEINTE_ENVIRONNEMENT',
+    libelle: 'Responsabilité civile atteinte à l’environnement',
+    categorie: Categorie.RESPONSABILITE,
+    beneficiaire: Beneficiaire.TIERS,
+    definition:
+      'Responsabilité du preneur pour les dommages et frais de dépollution résultant d’une atteinte à l’environnement. La pollution ACCIDENTELLE et la pollution GRADUELLE relèvent presque toujours de garanties distinctes.',
+    neCouvrePas: [
+      'La pollution antérieure à la prise d’effet du bail, sauf reprise expresse du passé',
+      'La pollution graduelle, quand seule l’accidentelle est souscrite',
+      'Les amendes et sanctions administratives',
+    ],
+    baseJuridique:
+      'Code de l’environnement, articles L162-1 et suivants : responsabilité environnementale de l’exploitant.',
+    motifsObligation: [
+      {
+        pattern: /atteintes? [àa] l.environnement|pollution|d[ée]pollution|contamination des sols/i,
+        expres: true,
+      },
+    ],
+    motifsCouverture: [
+      {
+        pattern: /atteintes? [àa] l.environnement|pollution (?:accidentelle|graduelle)|\bRCAE\b|d[ée]pollution/i,
+        expres: true,
+      },
+    ],
+    confusions: [
+      {
+        avec: 'RC_EXPLOITATION',
+        distinction:
+          'La RC exploitation exclut presque toujours l’atteinte à l’environnement, qui fait l’objet d’une garantie et d’un capital séparés. Valider une exigence de dépollution sur la ligne RC exploitation est un contresens fréquent et coûteux.',
+        question:
+          'Le tableau de garanties porte-t-il une ligne « atteinte à l’environnement » distincte, avec son propre capital ?',
+      },
+    ],
+  },
+  {
+    id: 'DOMMAGES_OUVRAGE',
+    libelle: 'Dommages-ouvrage',
+    categorie: Categorie.DOMMAGES_AUX_BIENS,
+    beneficiaire: Beneficiaire.MIXTE,
+    definition:
+      'Assurance obligatoire du maître d’ouvrage, qui préfinance la réparation des désordres de nature décennale sans attendre la recherche de responsabilité.',
+    neCouvrePas: [
+      'Les dommages survenus pendant le chantier, qui relèvent de la tous risques chantier',
+      'Les travaux d’entretien ou d’aménagement sans incidence sur la solidité',
+    ],
+    baseJuridique:
+      'Code des assurances, article L242-1 : obligation du maître d’ouvrage, avant l’ouverture du chantier.',
+    motifsObligation: [
+      { pattern: /dommages?[- ]ouvrage|\bDO\b(?![A-Z])|assurance d[ée]cennale/i, expres: true },
+    ],
+    motifsCouverture: [
+      { pattern: /dommages?[- ]ouvrage|garantie d[ée]cennale/i, expres: true },
+    ],
+    confusions: [
+      {
+        avec: 'TOUS_RISQUES_CHANTIER',
+        distinction:
+          'La dommages-ouvrage joue APRÈS réception, sur les désordres décennaux. La tous risques chantier joue PENDANT les travaux, sur l’ouvrage en cours. Elles ne se remplacent jamais l’une l’autre.',
+        question: 'Le sinistre se produit-il avant ou après la réception des travaux ?',
+      },
+    ],
+  },
+  {
+    id: 'TOUS_RISQUES_CHANTIER',
+    libelle: 'Tous risques chantier',
+    categorie: Categorie.DOMMAGES_AUX_BIENS,
+    beneficiaire: Beneficiaire.MIXTE,
+    definition:
+      'Assurance des dommages matériels subis par l’ouvrage en cours de construction, ainsi que par les matériels et matériaux du chantier, jusqu’à la réception.',
+    neCouvrePas: [
+      'Les désordres apparus après réception, qui relèvent de la dommages-ouvrage',
+      'La responsabilité des intervenants envers les tiers',
+    ],
+    motifsObligation: [
+      { pattern: /tous risques? chantiers?|\bTRC\b/i, expres: true },
+    ],
+    motifsCouverture: [
+      { pattern: /tous risques? chantiers?|\bTRC\b/i, expres: true },
+    ],
+    confusions: [
+      {
+        avec: 'DOMMAGES_OUVRAGE',
+        distinction:
+          'Deux périodes différentes : la tous risques chantier s’arrête à la réception, la dommages-ouvrage commence après. Un bail qui n’exige que l’une laisse l’autre période découverte.',
+        question: 'Le bail couvre-t-il la période de chantier, celle d’après réception, ou les deux ?',
+      },
+    ],
+  },
+
   // ---------------------------------------------------------------------
   // Pertes financieres
   // ---------------------------------------------------------------------

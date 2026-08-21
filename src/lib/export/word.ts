@@ -12,7 +12,7 @@
  * client achete une analyse, pas un abonnement (§7). La marque Clauzy tient en
  * pied de page.
  */
-import { LIBELLE_STATUT } from '@/domain/controles'
+import { LIBELLE_STATUT, NOMBRE_CONTROLES } from '@/domain/controles'
 import {
   MENTION_LIMITE,
   calendrier,
@@ -185,7 +185,7 @@ const synthese = (d: Docx, dossier: Dossier) => {
   }
 
   if (dossier.observations.length > 0) {
-    blocs.push(titre(d, 'Observations hors des 40 contrôles', 2))
+    blocs.push(titre(d, `Observations hors des ${NOMBRE_CONTROLES} contrôles`, 2))
     for (const observation of dossier.observations) {
       blocs.push(puce(d, `${observation.titre} — ${observation.texte}`))
     }

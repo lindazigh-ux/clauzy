@@ -10,6 +10,8 @@
  * par non, pas par une periphrase : le §13 interdit de presenter une sortie du
  * moteur comme un avis juridique, et une FAQ evasive est deja une infraction.
  */
+import { NOMBRE_CONTROLES } from '@/domain/controles'
+
 export type QuestionReponse = {
   readonly question: string
   /** Reponse en paragraphes. Le premier tranche, les suivants expliquent. */
@@ -31,7 +33,7 @@ export const FAQ: readonly QuestionReponse[] = [
     rubrique: 'Méthode',
     reponse: [
       'Parce qu’un assistant généraliste répond à ce qu’on lui demande, et se tait sur ce qu’on ne lui a pas demandé. C’est exactement le mode de défaillance qu’un devoir de conseil ne pardonne pas.',
-      'Clauzy applique les mêmes 40 contrôles à chaque dossier, dans le même ordre, et rend 40 résultats — y compris pour les contrôles qu’il n’a pas su trancher, qui ressortent « à vérifier manuellement ». Un rapport qui omet une ligne se lit comme « pas de problème sur ce point », ce qui est faux.',
+      `Clauzy applique les mêmes ${NOMBRE_CONTROLES} contrôles à chaque dossier, dans le même ordre, et rend ${NOMBRE_CONTROLES} résultats — y compris pour les contrôles qu’il n’a pas su trancher, qui ressortent « à vérifier manuellement ». Un rapport qui omet une ligne se lit comme « pas de problème sur ce point », ce qui est faux.`,
       'Il faut y ajouter la confidentialité : envoyer un bail commercial et le programme d’assurance d’un client à un service tiers est une décision que peu de directions juridiques prennent à la légère.',
     ],
   },
@@ -72,7 +74,7 @@ export const FAQ: readonly QuestionReponse[] = [
     rubrique: 'Pratique',
     reponse: [
       'Un scan sans couche texte ne donne rien à analyser, et l’outil vous le dit page par page plutôt que de rendre un rapport vide qui aurait l’air complet.',
-      'Deux issues : redemander une version avec couche texte, ou rattacher les clauses à la main dans le lecteur. Les 40 contrôles restent applicables dans les deux cas.',
+      `Deux issues : redemander une version avec couche texte, ou rattacher les clauses à la main dans le lecteur. Les ${NOMBRE_CONTROLES} contrôles restent applicables dans les deux cas.`,
     ],
   },
   {
@@ -95,7 +97,7 @@ export const FAQ: readonly QuestionReponse[] = [
     question: 'Combien de temps prend une analyse ?',
     rubrique: 'Pratique',
     reponse: [
-      'Le moteur rend ses 40 résultats en quelques secondes. Le temps réel est celui de la reprise à la main : lire les écarts, écarter les faux positifs avec un motif, chiffrer, rédiger.',
+      `Le moteur rend ses ${NOMBRE_CONTROLES} résultats en quelques secondes. Le temps réel est celui de la reprise à la main : lire les écarts, écarter les faux positifs avec un motif, chiffrer, rédiger.`,
       'C’est le travail que vous factureriez de toute façon. Ce que l’outil supprime, c’est la relecture ligne à ligne du bail et le risque d’avoir sauté un point.',
     ],
   },

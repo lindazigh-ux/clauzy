@@ -19,17 +19,17 @@ const piece = (id: string): DocumentAnalyse => {
 }
 
 describe('aucun contrôle ne disparaît (brief §5.2)', () => {
-  it.each(BAUX)('$libelle produit 40 résultats', (b) => {
+  it.each(BAUX)('$libelle produit un résultat par contrôle', (b) => {
     const analyse = analyser([{ id: b.id, role: 'OBLIGATION', texte: b.texte }])
     expect(analyse.resultats).toHaveLength(NOMBRE_CONTROLES)
     expect(new Set(analyse.resultats.map((r) => r.controleId)).size).toBe(NOMBRE_CONTROLES)
   })
 
-  it('produit 40 résultats même sans aucun document', () => {
+  it('produit un résultat par contrôle même sans aucun document', () => {
     expect(analyser([]).resultats).toHaveLength(NOMBRE_CONTROLES)
   })
 
-  it('produit 40 résultats sur un document vide ou illisible', () => {
+  it('produit un résultat par contrôle sur un document vide ou illisible', () => {
     for (const texte of ['', '   ', 'binaire illisible']) {
       expect(analyser([{ id: 'x', role: 'OBLIGATION', texte }]).resultats).toHaveLength(
         NOMBRE_CONTROLES,
@@ -128,7 +128,7 @@ describe('synthèse', () => {
   it('formule la phrase de tête du rapport', () => {
     const { synthese } = analyser([bail('bail-cc'), piece('cp-complete')])
     expect(synthese.phrase).toMatch(
-      /^40 contrôles appliqués . \d+ écarts?, \d+ conformes?, \d+ sans objet, \d+ à vérifier manuellement\.$/,
+      /^\d+ contrôles appliqués . \d+ écarts?, \d+ conformes?, \d+ sans objet, \d+ à vérifier manuellement\.$/,
     )
   })
 })

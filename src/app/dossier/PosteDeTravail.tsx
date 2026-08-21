@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import type { Gravite, Statut } from '@/domain/controles'
+import { NOMBRE_CONTROLES, type Gravite, type Statut } from '@/domain/controles'
 import {
   ajouterDocument,
   ajouterObservation,
@@ -266,7 +266,7 @@ export function PosteDeTravail() {
 
           {dossier.analyse === null && (
             <p className={styles.avertissement}>
-              Aucune analyse n’a encore tourné. Les 40 contrôles sont affichés « à vérifier
+              Aucune analyse n’a encore tourné. Les {NOMBRE_CONTROLES} contrôles sont affichés « à vérifier
               manuellement » — c’est l’état exact du dossier, pas une absence de résultat.
             </p>
           )}

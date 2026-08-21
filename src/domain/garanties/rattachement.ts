@@ -22,6 +22,15 @@ import { GARANTIE_PAR_ID } from './nomenclature'
 
 /** Les rattachements reels. Ecrits a plat, un controle par ligne, pour se relire. */
 const TABLE: readonly (readonly [string, readonly string[]])[] = [
+  // --- Garanties fondamentales ---
+  // C'est ici que la question de base se pose : la garantie exigee est-elle
+  // souscrite ? Le rapprochement par garantie y est donc decisif.
+  ['GAR-01', ['RISQUES_LOCATIFS']],
+  ['GAR-02', ['RISQUES_LOCATIFS', 'ASSURANCE_IMMEUBLE_BAILLEUR']],
+  ['GAR-03', ['RC_EXPLOITATION']],
+  ['GAR-04', ['BRIS_DE_MACHINE']],
+  ['GAR-05', ['VALEUR_A_NEUF']],
+
   // --- Dommages aux biens ---
   ['DAB-01', ['ASSURANCE_IMMEUBLE_BAILLEUR', 'RISQUES_LOCATIFS']],
   ['DAB-02', ['DOMMAGES_BIENS_PRENEUR', 'MOBILIER_MATERIEL_MARCHANDISES', 'AGENCEMENTS_AMENAGEMENTS']],
@@ -57,6 +66,16 @@ const TABLE: readonly (readonly [string, readonly string[]])[] = [
   ['RC-03', ['RECOURS_VOISINS_TIERS']],
   ['RC-04', ['RC_EXPLOITATION']],
   ['RC-05', ['RC_EXPLOITATION']],
+
+  // --- Risques particuliers ---
+  // La RC exploitation exclut presque toujours l'atteinte a l'environnement :
+  // valider une exigence de depollution sur la ligne RC serait un contresens.
+  ['ENV-01', ['RC_ATTEINTE_ENVIRONNEMENT']],
+  ['ENV-02', ['RC_ATTEINTE_ENVIRONNEMENT']],
+
+  // --- Travaux ---
+  ['TRV-01', ['DOMMAGES_OUVRAGE']],
+  ['TRV-02', ['TOUS_RISQUES_CHANTIER']],
 
   // --- Obligations formelles ---
   // FOR-02 confronte l'attestation aux franchises reelles ; FOR-05 a un niveau

@@ -40,6 +40,8 @@ export function generateStaticParams() {
  * d'attaquer les fiches. Une famille sans introduction n'est qu'une liste.
  */
 const INTRODUCTION: Record<Famille, string> = {
+  [Famille.GARANTIES_FONDAMENTALES]:
+    'La question de base, celle qu’une relecture juridique ne pose pas : la garantie exigée par le bail est-elle réellement souscrite ? Les risques locatifs en sont l’exemple — l’obligation d’assurance la plus fondamentale d’un bail commercial, et celle que le vocabulaire fait le plus souvent manquer, parce que le bail décrit des événements là où la police nomme une garantie.',
   [Famille.PERIMETRE_DOCUMENTAIRE]:
     'Avant toute comparaison de garanties, il faut s’assurer que le bail et la police parlent du même preneur, du même local et de la même activité. Une police souscrite au nom d’une filiale, sur une adresse ancienne, ou pour une activité qui a évolué, ne couvre pas ce que le bail exige — et personne ne s’en aperçoit avant le sinistre.',
   [Famille.DOMMAGES_AUX_BIENS]:
@@ -104,7 +106,7 @@ export default async function PageFamille({ params }: Parametres) {
       <FilStructure
         etapes={[
           { nom: 'Accueil', chemin: '/' },
-          { nom: 'Les 40 contrôles', chemin: '/controles' },
+          { nom: `Les ${NOMBRE_CONTROLES} contrôles`, chemin: '/controles' },
           { nom: libelle, chemin: `/controles/${slug}` },
         ]}
       />

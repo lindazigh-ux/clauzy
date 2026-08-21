@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+import { NOMBRE_CONTROLES } from '@/domain/controles'
 import { NAVIGATION, PAGES_LEGALES } from '@/contenu/site'
 import { MENTION_LIMITE } from '@/domain/dossier/types'
 
@@ -80,7 +81,7 @@ export function Pied() {
               <Link href="/methode">La méthode</Link>
             </li>
             <li>
-              <Link href="/controles">Les 40 contrôles</Link>
+              <Link href="/controles">Les {NOMBRE_CONTROLES} contrôles</Link>
             </li>
             <li>
               <Link href="/livrable">Le livrable</Link>

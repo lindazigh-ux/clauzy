@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { NOMBRE_CONTROLES } from '@/domain/controles'
+
 import { BAUX, PIECES } from '@/domain/corpus/baux'
 import {
   dossierVierge,
@@ -114,7 +116,7 @@ describe('plages qui se chevauchent', () => {
 
     const p = planifierAnnotations(dossier, resultatsAffiches(dossier), 'x', texte, AUTEUR)
 
-    expect(lignes).toHaveLength(40)
+    expect(lignes).toHaveLength(NOMBRE_CONTROLES)
     expect(texteDuPlan(p)).toBe(texte)
     expect(p.annotations).toHaveLength(2)
     for (const annotation of p.annotations) {

@@ -81,6 +81,81 @@ export const CAS: readonly CasControle[] = [
         'Les lieux sont réservés à la vente au détail d’articles textiles, sans possibilité de modification sans accord écrit préalable.',
     },
   },
+  // ---------------------------------------------------------------------
+  // Garanties fondamentales — ajoutées avec la famille GAR.
+  //
+  // Le négatif est ici particulièrement important : il porte la rédaction
+  // SAINE du même sujet, celle qui ne doit rien déclencher. C'est lui qui
+  // interdit au moteur de crier au loup devant une clause ordinaire.
+  // ---------------------------------------------------------------------
+  {
+    controleId: 'GAR-01',
+    positif: {
+      article: A_ASSURANCES,
+      texte:
+        'Le Preneur devra assurer les locaux loués contre l’incendie, l’explosion et les dégâts des eaux, et en justifier à première demande du Bailleur.',
+    },
+    // Même article, même sujet — l'assurance du preneur — mais l'obligation
+    // porte sur ses biens propres et ne met en jeu aucune responsabilité
+    // locative. Le contrôle n'a donc rien à dire.
+    negatif: {
+      article: A_ASSURANCES,
+      texte:
+        'Le Preneur assure son mobilier, son matériel professionnel et ses marchandises, ainsi que les aménagements qu’il a lui-même réalisés.',
+    },
+  },
+  {
+    controleId: 'GAR-02',
+    positif: {
+      article: A_ASSURANCES,
+      texte:
+        'Le Preneur devra assurer les locaux pendant toute la durée du bail auprès d’une compagnie notoirement solvable.',
+    },
+    negatif: {
+      article: A_ASSURANCES,
+      texte:
+        'Le Preneur garantit sa responsabilité locative au titre des locaux loués. L’assurance de l’immeuble, de la structure, du clos et du couvert demeure à la charge du Bailleur.',
+    },
+  },
+  {
+    controleId: 'GAR-03',
+    positif: {
+      article: A_RC,
+      texte:
+        'Le Preneur justifiera d’une responsabilité civile exploitation couvrant les conséquences pécuniaires des dommages causés aux tiers du fait de son activité.',
+    },
+    negatif: {
+      article: A_RC,
+      texte:
+        'Les parties conviennent que chacune conserve la charge des conséquences de ses propres manquements, dans les conditions du droit commun.',
+    },
+  },
+  {
+    controleId: 'GAR-04',
+    positif: {
+      article: A_ASSURANCES,
+      texte:
+        'Le Preneur assurera l’ensemble de son matériel informatique et de ses équipements techniques contre tous dommages, quelle qu’en soit la cause.',
+    },
+    negatif: {
+      article: A_ASSURANCES,
+      texte:
+        'Le Preneur assure son matériel dans les limites et conditions des polices effectivement souscrites.',
+    },
+  },
+  {
+    controleId: 'GAR-05',
+    positif: {
+      article: A_SINISTRE,
+      texte:
+        'En cas de sinistre, la remise en état sera assurée en valeur à neuf, sans déduction de vétusté, aux frais du Preneur.',
+    },
+    negatif: {
+      article: A_SINISTRE,
+      texte:
+        'L’indemnisation intervient selon les modalités des polices effectivement souscrites, dans leurs limites et conditions.',
+    },
+  },
   {
     controleId: 'DAB-01',
     positif: {

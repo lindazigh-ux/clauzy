@@ -11,11 +11,11 @@ import propres from './tarifs.module.css'
 export const metadata: Metadata = {
   title: 'Tarifs',
   description:
-    'Quatre plans : Essai gratuit, Praticien, Cabinet et Grands comptes. Les 40 contrôles sont inclus dans tous, y compris l’essai. Abonnement, jamais de facturation au dossier.',
+    `Quatre plans : Essai gratuit, Praticien, Cabinet et Grands comptes. Les ${NOMBRE_CONTROLES} contrôles sont inclus dans tous, y compris l’essai. Abonnement, jamais de facturation au dossier.`,
   ...partage({
     titre: 'Tarifs — Clauzy',
     description:
-      'Essai gratuit, Praticien, Cabinet, Grands comptes. Les 40 contrôles inclus partout.',
+      `Essai gratuit, Praticien, Cabinet, Grands comptes. Les ${NOMBRE_CONTROLES} contrôles inclus partout.`,
     chemin: '/tarifs',
   }),
 }
