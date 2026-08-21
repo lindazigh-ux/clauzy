@@ -199,7 +199,7 @@ export default async function PageFamille({ params }: Parametres) {
               className={propres.familleCarte}
             >
               <span className={propres.familleReferences}>
-                {parFamille(autre).map((c) => c.id).join(' · ')}
+                {parFamille(autre).length} contrôle{parFamille(autre).length > 1 ? 's' : ''}
               </span>
               <h3 className={propres.familleTitre}>{LIBELLE_FAMILLE[autre]}</h3>
             </Link>

@@ -35,14 +35,29 @@ const CATEGORIES = ['performance', 'accessibility', 'best-practices', 'seo']
 const resultats = []
 
 try {
-  for (const chemin of CHEMINS) {
-    const { lhr } = await lighthouse(
+  const mesurer = (chemin) =>
+    lighthouse(
       BASE + chemin,
       { port: chrome.port, output: 'json', logLevel: 'error' },
       { extends: 'lighthouse:default', settings: { onlyCategories: CATEGORIES, formFactor: 'desktop',
         screenEmulation: { mobile: false, width: 1350, height: 940, deviceScaleFactor: 1, disabled: false },
         throttling: { rttMs: 40, throughputKbps: 10240, cpuSlowdownMultiplier: 1 } } },
     )
+
+  for (const chemin of CHEMINS) {
+    let { lhr } = await mesurer(chemin)
+    // Une mesure peut echouer pour une raison qui ne tient pas a la page :
+    // machine chargee, premiere peinture non detectee. Un 0 silencieux serait
+    // pris pour une regression — on redemande une fois, puis on le DIT.
+    if (lhr.runtimeError !== undefined) {
+      console.error(`  ${chemin} : ${lhr.runtimeError.code} — nouvelle mesure`)
+      ;({ lhr } = await mesurer(chemin))
+      if (lhr.runtimeError !== undefined) {
+        console.error(`\nMesure impossible sur ${chemin} : ${lhr.runtimeError.message}`)
+        process.exitCode = 1
+        continue
+      }
+    }
     resultats.push({
       chemin,
       scores: Object.fromEntries(
