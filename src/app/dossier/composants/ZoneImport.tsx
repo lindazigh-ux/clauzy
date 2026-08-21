@@ -21,9 +21,15 @@ export type ZoneImportProps = {
   readonly onRetirer: (documentId: string) => void
 }
 
+/**
+ * Trois natures de piece, et la distinction compte : une attestation prouve
+ * qu'un contrat existe, pas ce qu'il couvre. Ranger l'une pour l'autre fausse
+ * le niveau de preuve du rapport.
+ */
 const LIBELLE_ROLE: Record<RoleDocument, string> = {
   OBLIGATION: 'Bail et avenants',
-  COUVERTURE: 'Police, attestations, courriels',
+  COUVERTURE: 'Contrat d’assurance — conditions particulières et générales',
+  ATTESTATION: 'Attestation d’assurance ou courriel',
 }
 
 const poids = (octets: number): string =>

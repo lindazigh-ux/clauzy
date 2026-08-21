@@ -10,8 +10,24 @@
 
 export type FormatFichier = 'pdf' | 'docx' | 'msg' | 'texte'
 
-/** Role du document dans le croisement (brief §11). */
-export type RoleDocument = 'OBLIGATION' | 'COUVERTURE'
+/**
+ * Role du document dans le croisement (brief §11).
+ *
+ * Trois sources, pas deux, et la troisieme n'est pas un detail : une garantie
+ * peut etre exigee par le bail, exister au contrat, et ne pas figurer sur
+ * l'attestation remise au bailleur. C'est un cas frequent, et ce n'est ni une
+ * conformite ni un ecart — c'est un defaut de justification, qui se corrige
+ * par un courrier et non par un avenant.
+ *
+ * COUVERTURE designe la piece PROBANTE : conditions particulieres et
+ * generales, avenants. ATTESTATION designe la piece DECLARATIVE, qui prouve
+ * qu'un contrat existe mais pas ce qu'il couvre.
+ */
+export type RoleDocument = 'OBLIGATION' | 'COUVERTURE' | 'ATTESTATION'
+
+/** Les deux roles qui repondent, du cote de l'assurance, aux obligations. */
+export const estCoteCouverture = (role: RoleDocument): boolean =>
+  role === 'COUVERTURE' || role === 'ATTESTATION'
 
 export type EnteteCourriel = {
   readonly objet: string | null

@@ -54,7 +54,7 @@ Pertes d’exploitation : douze mois.`
 
   it('accepte une RC occupant, en le disant plutôt qu’en l’affirmant', () => {
     const rcOccupant = 'Responsabilité civile occupant : 3 000 000 € par sinistre.'
-    const rapprochements = rapprocher(BAIL_ORDINAIRE, rcOccupant, true)
+    const rapprochements = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: rcOccupant, attestation: '' })
     const locatifs = rapprochements.find((r) => r.garantieId === 'RISQUES_LOCATIFS')
 
     // Une garantie englobante repond, mais ce n'est pas la ligne exacte : le
@@ -67,7 +67,7 @@ Pertes d’exploitation : douze mois.`
 
 describe('« absent » n’est pas « non démontré »', () => {
   it('sans pièce d’assurance, ne conclut pas à une absence de couverture', () => {
-    const rapprochements = rapprocher(BAIL_ORDINAIRE, '', false)
+    const rapprochements = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: '', attestation: '' })
     for (const rapprochement of rapprochements) {
       expect(rapprochement.niveau, rapprochement.garantieId).toBe(NiveauPreuve.NON_DEMONTREE)
       expect(rapprochement.conclusion).toMatch(/Aucune pièce d’assurance n’a été fournie/)
@@ -75,11 +75,7 @@ describe('« absent » n’est pas « non démontré »', () => {
   })
 
   it('avec les pièces et une garantie manquante, confirme l’écart', () => {
-    const rapprochements = rapprocher(
-      BAIL_ORDINAIRE,
-      'Responsabilité civile exploitation : 8 000 000 €.',
-      true,
-    )
+    const rapprochements = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: 'Responsabilité civile exploitation : 8 000 000 €.', attestation: '' })
     const locatifs = rapprochements.find((r) => r.garantieId === 'RISQUES_LOCATIFS')
     expect(locatifs?.niveau).toBe(NiveauPreuve.ECART_CONFIRME)
   })
@@ -87,7 +83,7 @@ describe('« absent » n’est pas « non démontré »', () => {
 
 describe('la trace du raisonnement', () => {
   it('dit ce qui a été cherché dans les pièces', () => {
-    const locatifs = rapprocher(BAIL_ORDINAIRE, POLICE_QUI_REPOND, true).find(
+    const locatifs = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' }).find(
       (r) => r.garantieId === 'RISQUES_LOCATIFS',
     )
     // Le praticien doit pouvoir controler le raisonnement, pas le croire.
@@ -96,7 +92,7 @@ describe('la trace du raisonnement', () => {
   })
 
   it('cite la stipulation exacte, des deux côtés', () => {
-    const locatifs = rapprocher(BAIL_ORDINAIRE, POLICE_QUI_REPOND, true).find(
+    const locatifs = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' }).find(
       (r) => r.garantieId === 'RISQUES_LOCATIFS',
     )
     expect(locatifs?.exigence?.stipulation.texte).toMatch(/locaux loués/)
@@ -111,7 +107,7 @@ describe('la trace du raisonnement', () => {
   })
 
   it('nomme le bénéficiaire réel, qui n’est pas celui qui souscrit', () => {
-    const rapprochements = rapprocher(BAIL_ORDINAIRE, POLICE_QUI_REPOND, true)
+    const rapprochements = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' })
     // Le preneur souscrit, le bailleur est protege : c'est ce decalage qui
     // fait l'interet de l'analyse.
     expect(rapprochements.find((r) => r.garantieId === 'RISQUES_LOCATIFS')?.beneficiaire).toBe(
@@ -124,7 +120,7 @@ describe('le vrai transfert reste détecté', () => {
   it('signale une obligation d’assurer l’immeuble du bailleur', () => {
     const bail = `Article 14 — Le Preneur assurera l’immeuble appartenant au Bailleur,
 en ce compris la structure, le clos et le couvert, pour sa valeur de reconstruction.`
-    const rapprochements = rapprocher(bail, POLICE_QUI_REPOND, true)
+    const rapprochements = rapprocher({ obligation: bail, contrat: POLICE_QUI_REPOND, attestation: '' })
     const ids = rapprochements.map((r) => r.garantieId)
     expect(ids).toContain('ASSURANCE_IMMEUBLE_BAILLEUR')
     // Et ne le confond pas avec une simple responsabilité locative.
@@ -143,7 +139,7 @@ describe('le rattachement des contrôles aux garanties', () => {
   it('laisse sans garantie les contrôles qu’aucune pièce ne démontre', () => {
     // Un delai d'attestation, une identite, une hierarchie contractuelle : ces
     // points se tranchent sur le document source seul.
-    const rapprochements = rapprocher(BAIL_ORDINAIRE, POLICE_QUI_REPOND, true)
+    const rapprochements = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' })
     const sansObjet = ['FOR-01', 'DOC-01', 'ART-01']
     for (const controleId of sansObjet) {
       expect(appuiPourControle(controleId, rapprochements), controleId).toBeNull()
@@ -162,5 +158,81 @@ describe('l’analyse expose le rapprochement', () => {
     // La regle du §5.2 ne cede devant aucune amelioration du moteur.
     expect(analyse(BAIL_ORDINAIRE, POLICE_QUI_REPOND).resultats).toHaveLength(NOMBRE_CONTROLES)
     expect(analyse('', null).resultats).toHaveLength(NOMBRE_CONTROLES)
+  })
+})
+
+describe('l’attestation, troisième source', () => {
+  const CONTRAT = `Conditions particulières
+Garantie responsabilité locative (risques locatifs) : 1 500 000 € par sinistre.
+Recours des voisins et des tiers : 1 500 000 € par sinistre.`
+
+  const trouver = (sources: Parameters<typeof rapprocher>[0], id: string) =>
+    rapprocher(sources).find((r) => r.garantieId === id)
+
+  it('signale une garantie au contrat, absente de l’attestation', () => {
+    // Le cas le plus frequent, et le plus mal traite : la couverture existe,
+    // mais le bailleur ne peut pas s'en assurer sur la piece qu'on lui remet.
+    const attestation =
+      'Attestation d’assurance — Responsabilité civile exploitation : 8 000 000 €.'
+    const resultat = trouver(
+      { obligation: BAIL_ORDINAIRE, contrat: CONTRAT, attestation },
+      'RISQUES_LOCATIFS',
+    )
+    expect(resultat?.niveau).toBe(NiveauPreuve.JUSTIFICATION_INSUFFISANTE)
+    expect(resultat?.conclusion).toMatch(/pas sur l’attestation produite/)
+    // Ce n'est pas un écart : la correction est un courrier, pas un avenant.
+    expect(resultat?.conclusion).toMatch(/Demander une attestation/)
+  })
+
+  it('conclut à la conformité quand l’attestation confirme le contrat', () => {
+    const attestation =
+      'Attestation — garanties : risques locatifs, recours des voisins et des tiers.'
+    const resultat = trouver(
+      { obligation: BAIL_ORDINAIRE, contrat: CONTRAT, attestation },
+      'RISQUES_LOCATIFS',
+    )
+    expect(resultat?.niveau).toBe(NiveauPreuve.ETABLIE)
+  })
+
+  it('ne conclut pas à la conformité sur une attestation seule', () => {
+    // Une attestation prouve qu'un contrat existe, pas ce qu'il couvre : c'est
+    // la these que le produit defend partout, et le moteur doit la tenir.
+    const resultat = trouver(
+      {
+        obligation: BAIL_ORDINAIRE,
+        contrat: '',
+        attestation: 'Attestation — garanties : risques locatifs, recours des voisins et des tiers.',
+      },
+      'RISQUES_LOCATIFS',
+    )
+    expect(resultat?.niveau).toBe(NiveauPreuve.PROBABLE)
+    expect(resultat?.conclusion).toMatch(/prouve l’existence d’un contrat mais pas l’étendue/)
+  })
+
+  it('ne crie pas à l’écart quand seule une attestation muette est fournie', () => {
+    // Sans contrat, on ne peut pas conclure a une absence de garantie : c'est
+    // « non démontré », et la difference n'est pas cosmetique.
+    const resultat = trouver(
+      {
+        obligation: BAIL_ORDINAIRE,
+        contrat: '',
+        attestation: 'Attestation d’assurance — contrat n° 4471 en cours de validité.',
+      },
+      'RISQUES_LOCATIFS',
+    )
+    expect(resultat?.niveau).toBe(NiveauPreuve.NON_DEMONTREE)
+  })
+
+  it('range l’attestation à sa place dans le rapprochement', () => {
+    const resultat = trouver(
+      {
+        obligation: BAIL_ORDINAIRE,
+        contrat: CONTRAT,
+        attestation: 'Attestation — garanties : risques locatifs.',
+      },
+      'RISQUES_LOCATIFS',
+    )
+    expect(resultat?.couverture?.stipulation.texte).toMatch(/responsabilité locative/i)
+    expect(resultat?.attestation?.stipulation.texte).toMatch(/Attestation/)
   })
 })

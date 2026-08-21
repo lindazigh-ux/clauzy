@@ -226,6 +226,7 @@ const CP_COMPLETE = `CONDITIONS PARTICULIÈRES — POLICE MULTIRISQUE PROFESSION
 Police n° FIC-000000 (document synthétique, aucune compagnie réelle)
 
 GARANTIES SOUSCRITES
+Responsabilité locative (risques locatifs) : 1 500 000 € par sinistre.
 Incendie, explosion, dégâts des eaux, tempête, catastrophes naturelles : acquis.
 Vol, vandalisme et effraction : acquis, sous condition de moyens de protection.
 Biens appartenant au preneur, matériels, marchandises et stocks : garantis.
@@ -249,7 +250,35 @@ Capitaux assurés : 900 000 €.
 Responsabilité civile exploitation : 3 000 000 € par sinistre.
 Perte d’exploitation : marge brute garantie pendant 6 mois.`
 
+/**
+ * Attestation SYNTHETIQUE, volontairement incomplete au regard des conditions
+ * particulieres qu'elle est censee resumer.
+ *
+ * C'est le cas le plus frequent en pratique, et le plus mal traite : la
+ * garantie existe au contrat, mais l'attestation remise au bailleur ne la
+ * mentionne pas. Ce n'est ni une conformite ni un ecart — c'est un defaut de
+ * justification, qui se corrige par un courriel au courtier et non par un
+ * avenant.
+ */
+const ATTESTATION_PARTIELLE = `ATTESTATION D’ASSURANCE
+Police n° FIC-000000 (document synthétique, aucune compagnie réelle)
+
+Nous soussignés attestons que le contrat ci-dessus référencé est en cours de validité
+pour la période du 1er janvier au 31 décembre.
+
+GARANTIES MENTIONNÉES
+Responsabilité civile exploitation : 8 000 000 € par sinistre.
+Recours des voisins et des tiers : 1 500 000 € par sinistre.
+Incendie, explosion, dégâts des eaux : acquis.
+
+La présente attestation est délivrée pour valoir ce que de droit. Elle ne peut engager
+la compagnie au-delà des clauses et conditions du contrat auquel elle se réfère.`
+
 export const PIECES: readonly PieceSynthetique[] = [
   { id: 'cp-complete', libelle: 'Conditions particulières complètes', texte: CP_COMPLETE },
   { id: 'cp-lacunaire', libelle: 'Conditions particulières lacunaires', texte: CP_LACUNAIRE },
+]
+
+export const ATTESTATIONS: readonly PieceSynthetique[] = [
+  { id: 'att-partielle', libelle: 'Attestation d’assurance', texte: ATTESTATION_PARTIELLE },
 ]

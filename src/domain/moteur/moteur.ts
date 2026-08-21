@@ -51,7 +51,10 @@ import {
 import { enMois, extraireValeurs, type ValeurExtraite } from './extracteurs'
 import { segmenter, type Segment } from './segmentation'
 
-export type RoleDocument = 'OBLIGATION' | 'COUVERTURE'
+export type RoleDocument = 'OBLIGATION' | 'COUVERTURE' | 'ATTESTATION'
+
+/** Du cote de l'assurance : la piece probante et la piece declarative. */
+const COTE_COUVERTURE: readonly RoleDocument[] = ['COUVERTURE', 'ATTESTATION']
 
 /**
  * Un document soumis au moteur. Le nom du fichier n'y figure pas : le moteur
@@ -383,17 +386,19 @@ export function analyser(documents: readonly DocumentAnalyse[]): Analyse {
     else segmentsCouverture.push(...segments)
   }
 
-  const pieceCouvertureFournie = documents.some((d) => d.role === 'COUVERTURE')
+  // Une attestation compte comme piece d'assurance : elle ne prouve pas
+  // l'etendue de la couverture, mais elle empeche de dire « aucune piece ».
+  const pieceCouvertureFournie = documents.some((d) => COTE_COUVERTURE.includes(d.role))
 
   // Le rapprochement par garantie se calcule UNE fois pour tout le dossier :
   // il ne depend pas du controle, mais des risques que les documents portent.
   const texte = (role: RoleDocument) =>
     documents.filter((d) => d.role === role).map((d) => d.texte).join('\n')
-  const rapprochements = rapprocher(
-    texte('OBLIGATION'),
-    texte('COUVERTURE'),
-    pieceCouvertureFournie,
-  )
+  const rapprochements = rapprocher({
+    obligation: texte('OBLIGATION'),
+    contrat: texte('COUVERTURE'),
+    attestation: texte('ATTESTATION'),
+  })
 
   // Le squelette fixe la longueur du tableau avant toute lecture : c'est la
   // garantie mecanique qu'aucun controle ne peut disparaitre (brief §5.2).

@@ -44,6 +44,7 @@ import { LecteurDocument } from './composants/LecteurDocument'
 import { Livrable } from './composants/Livrable'
 import { Matrice, Synthese, type FiltreEtat } from './composants/Matrice'
 import { PanneauObservations, PanneauPerimetre } from './composants/Perimetre'
+import { PanneauRapprochement } from './composants/Rapprochement'
 import { RapportImprimable } from './composants/RapportImprimable'
 import { Suivi } from './composants/Suivi'
 import { Sauvegarde } from './composants/Sauvegarde'
@@ -156,13 +157,21 @@ export function PosteDeTravail() {
   }, [dossier.documents])
 
   /**
-   * Jeu d'exemple : six baux et deux polices, ecrits de toutes pieces (§5.4).
-   * Charge a la demande — le corpus n'a rien a faire dans le bundle initial.
+   * Jeu d'exemple : six baux, deux polices et une attestation, ecrits de toutes
+   * pieces (§5.4). Charge a la demande — le corpus n'a rien a faire dans le
+   * bundle initial.
+   *
+   * Les trois sources sont chargees a dessein. L'attestation mentionne une
+   * garantie que les conditions particulieres ne portent pas : le dossier
+   * d'exemple montre ainsi les trois niveaux de preuve — etablie, probable
+   * (connue par la seule attestation, qui ne prouve pas l'etendue) et ecart
+   * confirme.
    */
   const chargerExemple = useCallback(async () => {
-    const { BAUX, PIECES } = await import('@/domain/corpus/baux')
+    const { BAUX, PIECES, ATTESTATIONS } = await import('@/domain/corpus/baux')
     const bail = BAUX.find((b) => b.id === 'bail-cc')
     const piece = PIECES.find((p) => p.id === 'cp-lacunaire')
+    const attestation = ATTESTATIONS.find((a) => a.id === 'att-partielle')
     if (bail === undefined || piece === undefined) return
 
     const enDocument = (
@@ -188,9 +197,22 @@ export function PosteDeTravail() {
         majReference(courant, 'EXEMPLE-001'),
         enDocument(bail.id, `${bail.libelle} (exemple).txt`, bail.texte, 'OBLIGATION'),
       )
-      return ajouterDocument(
+      const avecContrat = ajouterDocument(
         avecBail,
         enDocument(piece.id, `${piece.libelle} (exemple).txt`, piece.texte, 'COUVERTURE'),
+      )
+      // Trois sources, pas deux : l'attestation d'exemple omet volontairement
+      // une garantie que le contrat porte. C'est le cas le plus frequent en
+      // pratique, et celui que l'outil doit savoir nommer.
+      if (attestation === undefined) return avecContrat
+      return ajouterDocument(
+        avecContrat,
+        enDocument(
+          attestation.id,
+          `${attestation.libelle} (exemple).txt`,
+          attestation.texte,
+          'ATTESTATION',
+        ),
       )
     })
   }, [])
@@ -277,6 +299,10 @@ export function PosteDeTravail() {
             selection={selection}
             onSelectionner={(id) => setSelection(id === selection ? null : id)}
           />
+
+          {dossier.analyse !== null && (
+            <PanneauRapprochement rapprochements={dossier.analyse.rapprochements} />
+          )}
 
           <LecteurDocument
             documents={dossier.documents}

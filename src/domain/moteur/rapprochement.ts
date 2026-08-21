@@ -30,9 +30,22 @@ import type { Beneficiaire, Categorie } from '../garanties/types'
  * quelle certitude.
  */
 export enum NiveauPreuve {
-  /** Garantie identifiee, nommee, dans une piece. */
+  /** Garantie identifiee, nommee, dans une piece probante. */
   ETABLIE = 'ETABLIE',
-  /** Formulation differente mais correspondance probable — a confirmer. */
+  /**
+   * Garantie retrouvee au contrat, ABSENTE de l'attestation fournie.
+   *
+   * Ce n'est ni une conformite, ni un ecart : la couverture existe, mais le
+   * bailleur ne peut pas s'en assurer sur la piece qu'on lui remet. Cela se
+   * corrige par un courrier au courtier, pas par un avenant — et confondre les
+   * deux fait perdre du temps a tout le monde.
+   */
+  JUSTIFICATION_INSUFFISANTE = 'JUSTIFICATION_INSUFFISANTE',
+  /**
+   * Correspondance probable, a confirmer : formulation englobante, ou garantie
+   * connue seulement par une attestation, qui prouve l'existence d'un contrat
+   * mais pas l'etendue de ce qu'il couvre.
+   */
   PROBABLE = 'PROBABLE',
   /** Les pieces ne permettent pas de conclure. Ce n'est PAS une absence. */
   NON_DEMONTREE = 'NON_DEMONTREE',
@@ -42,6 +55,7 @@ export enum NiveauPreuve {
 
 export const LIBELLE_PREUVE: Record<NiveauPreuve, string> = {
   [NiveauPreuve.ETABLIE]: 'Couverture établie',
+  [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]: 'Couverture existante, justification insuffisante',
   [NiveauPreuve.PROBABLE]: 'Couverture probable',
   [NiveauPreuve.NON_DEMONTREE]: 'Couverture non démontrée',
   [NiveauPreuve.ECART_CONFIRME]: 'Écart confirmé',
@@ -54,8 +68,10 @@ export type Rapprochement = {
   readonly beneficiaire: Beneficiaire
   /** Ou l'exigence a ete lue dans le document source. */
   readonly exigence: Reconnaissance | null
-  /** Ce qui, dans les pieces, repond a cette exigence. */
+  /** Ce qui, dans le CONTRAT, repond a cette exigence. */
   readonly couverture: Reconnaissance | null
+  /** Ce que l'ATTESTATION mentionne — declaratif, jamais probant a lui seul. */
+  readonly attestation: Reconnaissance | null
   /**
    * Par quelle garantie l'exigence est satisfaite : elle-meme, ou une garantie
    * englobante. Une RC occupant repond a une exigence de risques locatifs.
@@ -84,14 +100,24 @@ const libellesRecherches = (garantieId: string): string[] => {
  * on ne conclut pas a un ecart, on constate qu'on ne peut pas conclure. C'est
  * la difference entre « absent » et « non demontre ».
  */
-export function rapprocher(
-  texteObligation: string,
-  texteCouverture: string,
-  piecesFournies: boolean,
-): Rapprochement[] {
-  const exigences = reconnaitre(texteObligation, 'OBLIGATION')
-  const couvertures = piecesFournies ? reconnaitre(texteCouverture, 'COUVERTURE') : []
+export type Sources = {
+  readonly obligation: string
+  /** Conditions particulieres et generales, avenants : les pieces probantes. */
+  readonly contrat: string
+  /** Attestations et courriels : declaratifs. Vides quand rien n'a ete fourni. */
+  readonly attestation: string
+}
+
+export function rapprocher(sources: Sources): Rapprochement[] {
+  const contratFourni = sources.contrat.trim().length > 0
+  const attestationFournie = sources.attestation.trim().length > 0
+  const piecesFournies = contratFourni || attestationFournie
+
+  const exigences = reconnaitre(sources.obligation, 'OBLIGATION')
+  const couvertures = contratFourni ? reconnaitre(sources.contrat, 'COUVERTURE') : []
+  const attestees = attestationFournie ? reconnaitre(sources.attestation, 'COUVERTURE') : []
   const idsCouverts = [...new Set(couvertures.map((c) => c.garantieId))]
+  const idsAttestes = [...new Set(attestees.map((c) => c.garantieId))]
 
   // Une exigence par garantie : la premiere occurrence porte l'ancrage, les
   // suivantes ne rajoutent rien au rapprochement.
@@ -102,21 +128,25 @@ export function rapprocher(
 
   return [...premiere.entries()].map(([garantieId, exigence]) => {
     const entree = garantie(garantieId)
-    const resultat = satisfaite(garantieId, idsCouverts)
-    const trouvee =
-      resultat.parQuoi === null
-        ? null
-        : (couvertures.find((c) => c.garantieId === resultat.parQuoi) ?? null)
+    const auContrat = satisfaite(garantieId, idsCouverts)
+    const aLAttestation = satisfaite(garantieId, idsAttestes)
 
-    const niveau = !piecesFournies
-      ? NiveauPreuve.NON_DEMONTREE
-      : resultat.satisfaite
-        ? // Une garantie englobante repond, mais elle n'est pas la ligne
-          // exacte : on le dit plutot que d'affirmer une equivalence.
-          resultat.parQuoi === garantieId
-          ? NiveauPreuve.ETABLIE
-          : NiveauPreuve.PROBABLE
-        : NiveauPreuve.ECART_CONFIRME
+    const trouvee =
+      auContrat.parQuoi === null
+        ? null
+        : (couvertures.find((c) => c.garantieId === auContrat.parQuoi) ?? null)
+    const mentionnee =
+      aLAttestation.parQuoi === null
+        ? null
+        : (attestees.find((c) => c.garantieId === aLAttestation.parQuoi) ?? null)
+
+    const niveau = decider(garantieId, {
+      auContrat,
+      aLAttestation,
+      contratFourni,
+      attestationFournie,
+      piecesFournies,
+    })
 
     return {
       garantieId,
@@ -125,13 +155,59 @@ export function rapprocher(
       beneficiaire: entree.beneficiaire,
       exigence,
       couverture: trouvee,
-      satisfaitePar: resultat.parQuoi,
+      attestation: mentionnee,
+      satisfaitePar: auContrat.parQuoi ?? aLAttestation.parQuoi,
       niveau,
       recherche: libellesRecherches(garantieId),
-      conclusion: conclure(garantieId, niveau, resultat.parQuoi, piecesFournies),
+      conclusion: conclure(
+        garantieId,
+        niveau,
+        auContrat.parQuoi ?? aLAttestation.parQuoi,
+        piecesFournies,
+      ),
       ecartees: exigence.ecartees,
     }
   })
+}
+
+type Contexte = {
+  readonly auContrat: { readonly satisfaite: boolean; readonly parQuoi: string | null }
+  readonly aLAttestation: { readonly satisfaite: boolean; readonly parQuoi: string | null }
+  readonly contratFourni: boolean
+  readonly attestationFournie: boolean
+  readonly piecesFournies: boolean
+}
+
+/**
+ * L'echelle de preuve, dans l'ordre ou un courtier la parcourt.
+ *
+ * Bail → Contrat → Attestation. La garantie peut etre exigee, exister au
+ * contrat, et manquer a l'attestation : ce n'est ni une conformite ni un
+ * ecart, et le distinguer evite d'envoyer negocier un avenant quand un
+ * courriel au courtier suffirait.
+ */
+const decider = (garantieId: string, contexte: Contexte): NiveauPreuve => {
+  if (!contexte.piecesFournies) return NiveauPreuve.NON_DEMONTREE
+
+  if (contexte.auContrat.satisfaite) {
+    // Trouvee au contrat. Reste a savoir si le bailleur peut le verifier.
+    if (contexte.attestationFournie && !contexte.aLAttestation.satisfaite) {
+      return NiveauPreuve.JUSTIFICATION_INSUFFISANTE
+    }
+    // Une garantie englobante repond, mais ce n'est pas la ligne exacte.
+    return contexte.auContrat.parQuoi === garantieId
+      ? NiveauPreuve.ETABLIE
+      : NiveauPreuve.PROBABLE
+  }
+
+  // Connue seulement par l'attestation : elle prouve qu'un contrat existe, pas
+  // ce qu'il couvre. On ne conclut donc pas a la conformite.
+  if (contexte.aLAttestation.satisfaite) return NiveauPreuve.PROBABLE
+
+  // Aucune piece probante fournie : on ne peut pas conclure a une absence.
+  if (!contexte.contratFourni) return NiveauPreuve.NON_DEMONTREE
+
+  return NiveauPreuve.ECART_CONFIRME
 }
 
 const conclure = (
@@ -144,12 +220,20 @@ const conclure = (
   switch (niveau) {
     case NiveauPreuve.ETABLIE:
       return `Exigence de « ${entree.libelle} » retrouvée dans les pièces d’assurance.`
-    case NiveauPreuve.PROBABLE:
+    case NiveauPreuve.JUSTIFICATION_INSUFFISANTE:
       return (
-        `Aucune ligne « ${entree.libelle} » au tableau, mais ` +
-        `« ${garantie(parQuoi as string).libelle} » englobe cette garantie. ` +
-        `À confirmer aux conditions particulières.`
+        `« ${entree.libelle} » figure au contrat, mais pas sur l’attestation produite. ` +
+        `La couverture existe ; le bailleur ne peut pas s’en assurer sur la pièce qu’on lui ` +
+        `remet. Demander une attestation détaillant cette garantie.`
       )
+    case NiveauPreuve.PROBABLE:
+      return parQuoi === null || parQuoi === garantieId
+        ? `« ${entree.libelle} » n’est connue que par une attestation, qui prouve l’existence ` +
+            `d’un contrat mais pas l’étendue de ce qu’il couvre. À confirmer aux conditions ` +
+            `particulières.`
+        : `Aucune ligne « ${entree.libelle} » au tableau, mais ` +
+            `« ${garantie(parQuoi).libelle} » englobe cette garantie. ` +
+            `À confirmer aux conditions particulières.`
     case NiveauPreuve.NON_DEMONTREE:
       return piecesFournies
         ? `Les pièces mentionnent le sujet sans permettre de conclure sur « ${entree.libelle} ».`
@@ -192,6 +276,7 @@ export function appuiPourControle(
   // controle qui porte sur cette autre garantie la signalera pour son compte.
   const ordre = [
     NiveauPreuve.ETABLIE,
+    NiveauPreuve.JUSTIFICATION_INSUFFISANTE,
     NiveauPreuve.PROBABLE,
     NiveauPreuve.NON_DEMONTREE,
     NiveauPreuve.ECART_CONFIRME,
