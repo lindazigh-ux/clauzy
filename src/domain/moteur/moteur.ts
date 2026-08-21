@@ -191,7 +191,15 @@ const decider = (
       }
     }
     if (appui.niveau === NiveauPreuve.ECART_CONFIRME && bande(couverture.confiance) === 'ABSENT') {
-      return { statut: Statut.ECART, motif: appui.conclusion }
+      return {
+        statut: Statut.ECART,
+        // Le diagnostic tient en une phrase : il doit dire sous quels libelles
+        // la recherche a ete faite, sans quoi « non retrouvée » n'est pas
+        // controlable.
+        motif:
+          `${appui.conclusion} Recherche effectuée sur : ` +
+          `${appui.recherche.join(', ').toLowerCase()}.`,
+      }
     }
   }
 

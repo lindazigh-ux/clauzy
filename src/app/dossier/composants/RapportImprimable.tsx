@@ -1,6 +1,8 @@
 'use client'
 
 import { LIBELLE_STATUT, Statut } from '@/domain/controles'
+import { Beneficiaire, LIBELLE_BENEFICIAIRE } from '@/domain/garanties/types'
+import { LIBELLE_PREUVE, NiveauPreuve } from '@/domain/moteur/rapprochement'
 import {
   MENTION_LIMITE,
   calendrier,
@@ -27,12 +29,29 @@ import styles from '../rapport.module.css'
  *   1. page de garde aux couleurs du cabinet ;
  *   2. perimetre et limites — la page qui protege ;
  *   3. synthese autonome ;
+ *   3 bis. rapprochement des garanties, risque par risque ;
  *   4. preconisations hierarchisees par enjeu chiffre ;
- *   5. matrice complete des 40 controles ;
+ *   5. matrice complete des controles ;
  *   6. suivi d'attestation.
  */
 const dateLongue = (iso: string): string =>
   new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+/**
+ * Le geste que chaque niveau de preuve appelle.
+ *
+ * Une conclusion sans suite ne sert a rien au client : « justification
+ * insuffisante » doit se lire « écrivez au courtier », pas « négociez un
+ * avenant ».
+ */
+const GESTE: Record<NiveauPreuve, string> = {
+  [NiveauPreuve.ETABLIE]: 'Point clos.',
+  [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]:
+    'Demander une attestation détaillant cette garantie. Le contrat n’est pas en cause.',
+  [NiveauPreuve.PROBABLE]: 'Confirmer aux conditions particulières avant de conclure.',
+  [NiveauPreuve.NON_DEMONTREE]: 'Réclamer la pièce manquante.',
+  [NiveauPreuve.ECART_CONFIRME]: 'Négocier la clause d’abord, chiffrer l’extension ensuite.',
+}
 
 export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
   const lignes = resultatsAffiches(dossier)
@@ -42,6 +61,7 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
   const ecartes = lignes.filter((ligne) => ligne.ecarte)
   const courriels = dossier.documents.filter((document) => document.courriel !== null)
   const jalons = calendrier(dossier.suivi)
+  const rapprochements = dossier.analyse?.rapprochements ?? []
   const couleur = `#${dossier.cabinet.couleur}`
 
   /** L'etat porte sa couleur jusque sur le papier. */
@@ -197,6 +217,42 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
           </>
         )}
       </section>
+
+      {/* 3 bis. Rapprochement des garanties — la lecture d'un courtier. */}
+      {rapprochements.length > 0 && (
+        <section className={styles.section}>
+          <h2>Rapprochement des garanties</h2>
+          <p className={styles.discret}>
+            Ce que le bail exige, risque par risque, et ce que les pièces produites démontrent. Une
+            garantie peut être exigée, exister au contrat, et ne pas figurer sur l’attestation
+            remise : ce n’est ni une conformité ni un écart, et la correction n’est pas la même.
+          </p>
+          <table className={styles.rapprochement}>
+            <thead>
+              <tr>
+                <th scope="col">Garantie</th>
+                <th scope="col">Protège</th>
+                <th scope="col">Preuve</th>
+                <th scope="col">Ce que cela appelle</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rapprochements.map((rapprochement) => (
+                <tr key={rapprochement.garantieId}>
+                  <th scope="row">{rapprochement.libelle}</th>
+                  <td>
+                    {rapprochement.beneficiaire === Beneficiaire.MIXTE
+                      ? '—'
+                      : LIBELLE_BENEFICIAIRE[rapprochement.beneficiaire]}
+                  </td>
+                  <td>{LIBELLE_PREUVE[rapprochement.niveau]}</td>
+                  <td>{GESTE[rapprochement.niveau]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
 
       {/* 4. Préconisations, par enjeu chiffré puis par gravité (§7). */}
       <section className={styles.section}>

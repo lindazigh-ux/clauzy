@@ -239,10 +239,9 @@ const conclure = (
         ? `Les pièces mentionnent le sujet sans permettre de conclure sur « ${entree.libelle} ».`
         : `Aucune pièce d’assurance n’a été fournie : la couverture de « ${entree.libelle} » ne peut pas être démontrée.`
     case NiveauPreuve.ECART_CONFIRME:
-      return (
-        `Exigence de « ${entree.libelle} » non retrouvée dans les pièces produites. ` +
-        `Recherche effectuée sur : ${libellesRecherches(garantieId).join(', ').toLowerCase()}.`
-      )
+      // La recherche effectuee a son propre champ dans le poste de travail
+      // comme dans le rapport : la repeter ici la ferait lire deux fois.
+      return `Exigence de « ${entree.libelle} » non retrouvée dans les pièces produites.`
   }
 }
 
@@ -259,6 +258,15 @@ export type AppuiGarantie = {
   readonly niveau: NiveauPreuve
   readonly satisfaitePar: string | null
   readonly conclusion: string
+  /**
+   * Ce qui a ete cherche dans les pieces.
+   *
+   * Le poste de travail affiche la recherche dans un champ dedie ; le
+   * diagnostic d'un controle, lui, tient en une phrase et doit la porter —
+   * sans quoi le praticien lit « non retrouvée » sans savoir sous quels
+   * libelles on a cherche.
+   */
+  readonly recherche: readonly string[]
 }
 
 export function appuiPourControle(
@@ -291,6 +299,7 @@ export function appuiPourControle(
     niveau: meilleur.niveau,
     satisfaitePar: meilleur.satisfaitePar,
     conclusion: meilleur.conclusion,
+    recherche: meilleur.recherche,
   }
 }
 

@@ -13,6 +13,8 @@
  * pied de page.
  */
 import { LIBELLE_STATUT, NOMBRE_CONTROLES } from '@/domain/controles'
+import { Beneficiaire, LIBELLE_BENEFICIAIRE } from '@/domain/garanties/types'
+import { LIBELLE_PREUVE, NiveauPreuve } from '@/domain/moteur/rapprochement'
 import {
   MENTION_LIMITE,
   calendrier,
@@ -29,6 +31,8 @@ import { planifierAnnotations, type Element, type PlanAnnotation } from './annot
 
 const GRIS = '696A74'
 const ENCRE = '15151A'
+/** Le vert de conformite. Distinct de la couleur du cabinet, qui varie. */
+const ACCENT = '0E6B4A'
 
 const dateLongue = (iso: string): string =>
   new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -56,6 +60,14 @@ const texteSimple = (d: Docx, texte: string, options: { gris?: boolean; petit?: 
 
 const puce = (d: Docx, texte: string) =>
   new d.Paragraph({ bullet: { level: 0 }, spacing: { after: 80 }, children: [new d.TextRun({ text: texte, size: 22 })] })
+
+/** Citation d'une stipulation : italique, retrait — le seul emploi legitime (§8). */
+const clause = (d: Docx, texte: string) =>
+  new d.Paragraph({
+    spacing: { after: 120 },
+    indent: { left: 340 },
+    children: [new d.TextRun({ text: `« ${texte} »`, italics: true, size: 21, color: ENCRE })],
+  })
 
 // ---------------------------------------------------------------------------
 // 1. Page de garde (§7)
@@ -189,6 +201,87 @@ const synthese = (d: Docx, dossier: Dossier) => {
     for (const observation of dossier.observations) {
       blocs.push(puce(d, `${observation.titre} — ${observation.texte}`))
     }
+  }
+
+  return blocs
+}
+
+// ---------------------------------------------------------------------------
+// 3 bis. Rapprochement des garanties — risque par risque
+// ---------------------------------------------------------------------------
+
+/**
+ * La section que le rapport n'avait pas.
+ *
+ * La matrice dit ce que chaque CONTROLE conclut ; celle-ci dit ce que chaque
+ * RISQUE devient. C'est la lecture d'un courtier : quelle garantie est exigee,
+ * laquelle est portee, avec quelle preuve — et, pour chaque niveau, le geste
+ * que cela appelle.
+ *
+ * Le niveau « justification insuffisante » y gagne sa place : la couverture
+ * existe mais l'attestation ne la porte pas, ce qui se corrige par un courriel
+ * au courtier et non par un avenant. Le rapport doit le dire, sans quoi le
+ * client negocie ce qu'il a deja.
+ */
+const rapprochementGaranties = (d: Docx, dossier: Dossier) => {
+  const rapprochements = dossier.analyse?.rapprochements ?? []
+  if (rapprochements.length === 0) return []
+
+  const blocs: InstanceType<Docx['Paragraph']>[] = [titre(d, 'Rapprochement des garanties', 1)]
+  blocs.push(
+    texteSimple(
+      d,
+      'Ce que le document source exige, risque par risque, et ce que les pièces produites ' +
+        'démontrent. Une garantie peut être exigée, exister au contrat, et ne pas figurer sur ' +
+        'l’attestation remise : ce n’est ni une conformité ni un écart, et la correction n’est ' +
+        'pas la même.',
+      { gris: true },
+    ),
+  )
+
+  const geste: Record<NiveauPreuve, string> = {
+    [NiveauPreuve.ETABLIE]: 'Point clos.',
+    [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]:
+      'Demander une attestation détaillant cette garantie. Le contrat n’est pas en cause.',
+    [NiveauPreuve.PROBABLE]: 'Confirmer aux conditions particulières avant de conclure.',
+    [NiveauPreuve.NON_DEMONTREE]: 'Réclamer la pièce manquante.',
+    [NiveauPreuve.ECART_CONFIRME]: 'Négocier la clause d’abord, chiffrer l’extension ensuite.',
+  }
+
+  for (const rapprochement of rapprochements) {
+    blocs.push(titre(d, rapprochement.libelle, 2))
+    blocs.push(
+      new d.Paragraph({
+        spacing: { after: 60 },
+        children: [
+          new d.TextRun({
+            text: LIBELLE_PREUVE[rapprochement.niveau].toUpperCase(),
+            size: 18,
+            bold: true,
+            color: rapprochement.niveau === NiveauPreuve.ETABLIE ? ACCENT : ENCRE,
+          }),
+          ...(rapprochement.beneficiaire === Beneficiaire.MIXTE
+            ? []
+            : [
+                new d.TextRun({
+                  text: `   protège : ${LIBELLE_BENEFICIAIRE[rapprochement.beneficiaire].toLowerCase()}`,
+                  size: 18,
+                  color: GRIS,
+                }),
+              ]),
+        ],
+      }),
+    )
+    blocs.push(texteSimple(d, rapprochement.conclusion))
+    if (rapprochement.exigence !== null) {
+      blocs.push(clause(d, rapprochement.exigence.stipulation.texte))
+    }
+    blocs.push(
+      texteSimple(d, `Recherche effectuée sur : ${rapprochement.recherche.join(', ').toLowerCase()}.`, {
+        gris: true,
+      }),
+    )
+    blocs.push(puce(d, geste[rapprochement.niveau]))
   }
 
   return blocs
@@ -460,6 +553,7 @@ export async function exporterWord(dossier: Dossier): Promise<RapportWord> {
     ...pageDeGarde(d, dossier),
     ...perimetreEtLimites(d, dossier, lignes),
     ...synthese(d, dossier),
+    ...rapprochementGaranties(d, dossier),
     ...listePreconisations(d, dossier),
     ...matrice(d, lignes),
     ...suiviAttestation(d, dossier),
