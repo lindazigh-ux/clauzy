@@ -1,4 +1,4 @@
-import { Beneficiaire, Categorie, type Garantie } from './types'
+import { Beneficiaire, Categorie, NiveauPreuve, type Garantie } from './types'
 
 /**
  * La nomenclature. Un risque par entree, nomme comme un courtier le nomme.
@@ -31,7 +31,7 @@ export const NOMENCLATURE: readonly Garantie[] = [
     baseJuridique:
       'Code civil, articles 1732 à 1735 : le preneur répond de l’incendie à moins qu’il ne prouve qu’il s’est produit sans sa faute.',
     motifsObligation: [
-      { pattern: /risques? locatifs?|responsabilit[ée] locative/i, libelle: 'nommée expressément', expres: true },
+      { pattern: /\brisques? locatifs?\b|\bresponsabilit[ée] locative\b/i, libelle: 'nommée expressément', expres: true },
       {
         // La rédaction la plus courante — et celle qui piégeait le moteur.
         pattern:
@@ -49,7 +49,7 @@ export const NOMENCLATURE: readonly Garantie[] = [
       },
     ],
     motifsCouverture: [
-      { pattern: /risques? locatifs?|responsabilit[ée] locative/i, expres: true },
+      { pattern: /\brisques? locatifs?\b|\bresponsabilit[ée] locative\b/i, expres: true },
       { pattern: /responsabilit[ée][^.\n\r:]{0,40}(?:du )?locataire[^.\n\r:]{0,40}(?:locaux|immeuble lou[ée])/i, poids: 0.8 },
       { pattern: /d[ée]t[ée]rioration des locaux lou[ée]s|dommages aux locaux lou[ée]s/i, poids: 0.8 },
     ],
@@ -74,6 +74,10 @@ export const NOMENCLATURE: readonly Garantie[] = [
         question: 'Le dommage reste-t-il dans les lieux loués, ou en sort-il ?',
       },
     ],
+    actions: {
+      [NiveauPreuve.ECART_CONFIRME]:
+        'Faire confirmer la ligne « risques locatifs » ou « responsabilité civile occupant » du tableau de garanties. Ce n’est pas une extension à négocier : c’est la garantie de base d’une police de locataire, et son absence signale une police mal souscrite plutôt qu’un manque à acheter.',
+    },
     satisfaitePar: ['RC_OCCUPANT'],
   },
   {
@@ -227,6 +231,15 @@ export const NOMENCLATURE: readonly Garantie[] = [
         question: 'Qui a financé l’aménagement, et à qui revient-il en fin de bail ?',
       },
     ],
+    actions: {
+      // Ne JAMAIS proposer de souscrire : ce serait faire financer par le
+      // preneur l'assurance d'un bien qui ne lui appartient pas. L'écart se
+      // corrige en retirant l'obligation, pas en l'exécutant.
+      [NiveauPreuve.ECART_CONFIRME]:
+        'Retirer de l’obligation du preneur la structure, les façades, la toiture et le clos et le couvert, qui appartiennent au bailleur. Ne pas chiffrer d’extension : souscrire reviendrait à lui faire financer l’assurance d’un bien dont il n’est pas propriétaire.',
+      [NiveauPreuve.NON_DEMONTREE]:
+        'Vérifier auprès du bailleur qui assure l’immeuble. La réponse tranche la clause plus sûrement que sa rédaction.',
+    },
   },
   {
     id: 'DOMMAGES_BIENS_PRENEUR',
@@ -263,10 +276,10 @@ export const NOMENCLATURE: readonly Garantie[] = [
       'Assurance des travaux d’aménagement réalisés par le preneur dans les locaux : cloisons, faux plafonds, revêtements, agencements de magasin.',
     neCouvrePas: ['La structure du bâtiment', 'Le mobilier et le matériel, qui font catégorie à part'],
     motifsObligation: [
-      { pattern: /am[ée]nagements?|agencements?|embellissements?|installations? mobili[èe]res/i, expres: true },
+      { pattern: /\b(?:am[ée]nagements?|agencements?|embellissements?)\b|installations? mobili[èe]res/i, expres: true },
     ],
     motifsCouverture: [
-      { pattern: /am[ée]nagements?|agencements?|embellissements?|\bAAE\b/i, expres: true },
+      { pattern: /\b(?:am[ée]nagements?|agencements?|embellissements?|AAE)\b/i, expres: true },
     ],
     confusions: [
       {
@@ -284,8 +297,22 @@ export const NOMENCLATURE: readonly Garantie[] = [
     beneficiaire: Beneficiaire.PRENEUR,
     definition: 'Assurance du contenu mobilier : mobilier, matériel professionnel, stocks et marchandises.',
     neCouvrePas: ['Les aménagements immobiliers', 'Les biens confiés relevant d’une garantie propre'],
-    motifsObligation: [{ pattern: /mobilier|mat[ée]riels?|marchandises?|stocks?/i }],
-    motifsCouverture: [{ pattern: /mobilier|mat[ée]riels?|marchandises?|stocks?|contenu/i }],
+    motifsObligation: [
+      {
+        // Bornes obligatoires. Sans elles, « mobilier » se reconnaît dans
+        // « ensemble immoBILIER » et rattache une clause de renonciation à
+        // recours à la garantie du contenu. C'est arrivé, et une seule
+        // association de ce genre suffit à faire tout revérifier.
+        pattern: /\b(?:mobiliers?|mat[ée]riels?|marchandises?|stocks?)\b/i,
+      },
+    ],
+    motifsCouverture: [
+      {
+        // « contenu » ne compte pas seul : « le contenu du bail », « le
+        // contenu de la police » sont trop fréquents pour marquer une garantie.
+        pattern: /\b(?:mobiliers?|mat[ée]riels?|marchandises?|stocks?)\b|contenu (?:professionnel|des locaux|assur[ée])/i,
+      },
+    ],
     confusions: [],
   },
   {
@@ -321,7 +348,7 @@ export const NOMENCLATURE: readonly Garantie[] = [
       'Code de l’environnement, articles L162-1 et suivants : responsabilité environnementale de l’exploitant.',
     motifsObligation: [
       {
-        pattern: /atteintes? [àa] l.environnement|pollution|d[ée]pollution|contamination des sols/i,
+        pattern: /atteintes? [àa] l.environnement|\bpollutions?\b|\bd[ée]pollution\b|contamination des sols/i,
         expres: true,
       },
     ],
@@ -481,6 +508,10 @@ export const NOMENCLATURE: readonly Garantie[] = [
         question: 'La renonciation vise-t-elle une partie au bail, ou des tiers ?',
       },
     ],
+    actions: {
+      [NiveauPreuve.ECART_CONFIRME]:
+        'Obtenir des conditions particulières portant expressément la renonciation à recours de l’assureur, et vérifier qu’elle couvre le même périmètre de dommages que la clause du bail. Aucune prime ne remplace cet écrit : c’est un accord, pas une garantie.',
+    },
   },
   {
     id: 'ASSURANCE_POUR_COMPTE',
@@ -533,8 +564,8 @@ export const NOMENCLATURE: readonly Garantie[] = [
     beneficiaire: Beneficiaire.MIXTE,
     definition: 'Part du sinistre qui reste à la charge de l’assuré.',
     neCouvrePas: ['Elle ne se supprime pas par une clause du bail : seule la police la fixe'],
-    motifsObligation: [{ pattern: /franchises?|sans franchise|reste [àa] charge/i }],
-    motifsCouverture: [{ pattern: /franchises?|d[ée]duction de/i }],
+    motifsObligation: [{ pattern: /\bfranchises?\b|reste [àa] charge/i }],
+    motifsCouverture: [{ pattern: /\bfranchises?\b|d[ée]duction de/i }],
     confusions: [],
   },
   {
@@ -544,8 +575,15 @@ export const NOMENCLATURE: readonly Garantie[] = [
     beneficiaire: Beneficiaire.MIXTE,
     definition: 'Montants de garantie, limites par sinistre et sous-limites applicables.',
     neCouvrePas: ['Un capital élevé ne compense pas une garantie absente'],
-    motifsObligation: [{ pattern: /capitaux|montants? (?:de )?garantie|montant suffisant/i }],
-    motifsCouverture: [{ pattern: /capitaux|limite de garantie|montant garanti|par sinistre/i }],
+    motifsObligation: [{ pattern: /\bcapitaux\b|montants? (?:de )?garantie|montant suffisant/i }],
+    motifsCouverture: [
+      {
+        // « par sinistre » figure sur CHAQUE ligne d'un tableau de garanties :
+        // en faire un marqueur de capitaux rattachait n'importe quelle ligne à
+        // n'importe quelle exigence de montant.
+        pattern: /\bcapitaux\b|limites? de garantie|montants? garantis?/i,
+      },
+    ],
     confusions: [],
   },
 ]

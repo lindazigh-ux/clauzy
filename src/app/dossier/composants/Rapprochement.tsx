@@ -30,19 +30,6 @@ const CLASSE_NIVEAU: Record<NiveauPreuve, string> = {
   [NiveauPreuve.ECART_CONFIRME]: 'ecart',
 }
 
-/** Ce que le niveau appelle comme geste. Une conclusion sans suite ne sert à rien. */
-const ACTION: Record<NiveauPreuve, string> = {
-  [NiveauPreuve.ETABLIE]: 'Rien à faire — le point est clos.',
-  [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]:
-    'Demander une attestation qui détaille cette garantie. Un courriel au courtier suffit : le contrat n’est pas en cause.',
-  [NiveauPreuve.PROBABLE]:
-    'Confirmer aux conditions particulières avant de conclure au rapport.',
-  [NiveauPreuve.NON_DEMONTREE]:
-    'Réclamer la pièce manquante. En son absence, la ligne reste ouverte au rapport.',
-  [NiveauPreuve.ECART_CONFIRME]:
-    'Négocier la clause d’abord, chiffrer l’extension de garantie ensuite.',
-}
-
 export function PanneauRapprochement({
   rapprochements,
 }: {
@@ -111,6 +98,13 @@ export function PanneauRapprochement({
                     <dt>Recherche effectuée dans les pièces</dt>
                     <dd>{rapprochement.recherche.join(' · ')}</dd>
 
+                    {rapprochement.chiffrage !== null && (
+                      <>
+                        <dt>Comparaison des montants</dt>
+                        <dd className={propres.chiffrage}>{rapprochement.chiffrage}</dd>
+                      </>
+                    )}
+
                     <dt>Trouvé au contrat</dt>
                     <dd className={rapprochement.couverture === null ? propres.rien : propres.citation}>
                       {rapprochement.couverture === null
@@ -158,7 +152,7 @@ export function PanneauRapprochement({
                     )}
                   </dl>
 
-                  <p className={propres.action}>{ACTION[rapprochement.niveau]}</p>
+                  <p className={propres.action}>{rapprochement.action}</p>
                 </div>
               )}
             </li>

@@ -152,7 +152,7 @@ const perimetreEtLimites = (d: Docx, dossier: Dossier, lignes: readonly LigneRap
   liste(
     'Contrôles sans objet pour ce dossier',
     sansObjet.map((ligne) => `${ligne.controle.id} — ${ligne.controle.titre}`),
-    'Aucun contrôle déclaré sans objet : les 40 ont été appliqués.',
+    `Aucun contrôle déclaré sans objet : les ${lignes.length} ont été appliqués.`,
   )
 
   const ecartes = lignes.filter((ligne) => ligne.ecarte)
@@ -239,15 +239,6 @@ const rapprochementGaranties = (d: Docx, dossier: Dossier) => {
     ),
   )
 
-  const geste: Record<NiveauPreuve, string> = {
-    [NiveauPreuve.ETABLIE]: 'Point clos.',
-    [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]:
-      'Demander une attestation détaillant cette garantie. Le contrat n’est pas en cause.',
-    [NiveauPreuve.PROBABLE]: 'Confirmer aux conditions particulières avant de conclure.',
-    [NiveauPreuve.NON_DEMONTREE]: 'Réclamer la pièce manquante.',
-    [NiveauPreuve.ECART_CONFIRME]: 'Négocier la clause d’abord, chiffrer l’extension ensuite.',
-  }
-
   for (const rapprochement of rapprochements) {
     blocs.push(titre(d, rapprochement.libelle, 2))
     blocs.push(
@@ -281,7 +272,10 @@ const rapprochementGaranties = (d: Docx, dossier: Dossier) => {
         gris: true,
       }),
     )
-    blocs.push(puce(d, geste[rapprochement.niveau]))
+    if (rapprochement.chiffrage !== null) {
+      blocs.push(texteSimple(d, `Comparaison : ${rapprochement.chiffrage}.`))
+    }
+    blocs.push(puce(d, rapprochement.action))
   }
 
   return blocs

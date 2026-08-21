@@ -124,9 +124,114 @@ export type Garantie = {
   /** Les confusions frequentes, et la question qui tranche. */
   readonly confusions: readonly Confusion[]
   /**
+   * Action propre a cette garantie, quand celle de sa categorie ne convient
+   * pas. Renseignee au cas par cas, jamais par confort.
+   */
+  readonly actions?: Partial<Record<NiveauPreuve, string>>
+  /**
    * Garanties qui, prises ensemble, satisfont celle-ci. Une « RC occupant »
    * repond a une exigence de risques locatifs ET de recours voisins et tiers :
    * sans cette notion, le moteur reclamerait une ligne qui n'existe pas.
    */
   readonly satisfaitePar?: readonly string[]
+}
+
+/**
+ * Niveau de preuve d'une garantie — la distinction entre « absent » et
+ * « non demontre ».
+ *
+ * Il vit ici, et non dans le moteur, parce qu'une garantie doit pouvoir dire
+ * elle-meme ce que chaque niveau appelle comme geste. Une action generique
+ * appliquee a toutes les garanties — « negocier la clause d'abord, chiffrer
+ * l'extension ensuite » — est fausse une fois sur deux : on ne negocie pas une
+ * franchise, on ne chiffre pas une extension de renonciation a recours.
+ */
+export enum NiveauPreuve {
+  /** Garantie identifiee, nommee, dans une piece probante. */
+  ETABLIE = 'ETABLIE',
+  /** Au contrat, absente de l'attestation fournie. Ni conformite, ni ecart. */
+  JUSTIFICATION_INSUFFISANTE = 'JUSTIFICATION_INSUFFISANTE',
+  /** Correspondance probable : garantie englobante, ou attestation seule. */
+  PROBABLE = 'PROBABLE',
+  /** Les pieces ne permettent pas de conclure. Ce n'est PAS une absence. */
+  NON_DEMONTREE = 'NON_DEMONTREE',
+  /** Documents suffisants et contradiction claire : l'ecart est confirme. */
+  ECART_CONFIRME = 'ECART_CONFIRME',
+}
+
+export const LIBELLE_PREUVE: Record<NiveauPreuve, string> = {
+  [NiveauPreuve.ETABLIE]: 'Couverture établie',
+  [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]: 'Couverture existante, justification insuffisante',
+  [NiveauPreuve.PROBABLE]: 'Couverture probable',
+  [NiveauPreuve.NON_DEMONTREE]: 'Couverture non démontrée',
+  [NiveauPreuve.ECART_CONFIRME]: 'Écart confirmé',
+}
+
+/**
+ * Ce que chaque niveau appelle, par defaut, selon la NATURE de la garantie.
+ *
+ * Une responsabilite absente se negocie puis se chiffre. Une modalite
+ * d'indemnisation ne se negocie pas : elle se confirme aux conditions
+ * particulieres. Un mecanisme contractuel ne s'achete pas : il s'obtient par
+ * ecrit de l'assureur. Confondre les trois envoie le courtier au mauvais
+ * interlocuteur.
+ */
+export const ACTION_PAR_CATEGORIE: Record<Categorie, Record<NiveauPreuve, string>> = {
+  [Categorie.RESPONSABILITE]: {
+    [NiveauPreuve.ETABLIE]: 'Point clos.',
+    [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]:
+      'Demander une attestation qui détaille cette garantie et son montant. Le contrat n’est pas en cause.',
+    [NiveauPreuve.PROBABLE]:
+      'Faire confirmer la garantie et son montant aux conditions particulières avant de conclure.',
+    [NiveauPreuve.NON_DEMONTREE]:
+      'Réclamer les conditions particulières. Sans elles, la responsabilité ne peut être ni confirmée ni écartée.',
+    [NiveauPreuve.ECART_CONFIRME]:
+      'Corriger la clause du bail en premier ; à défaut, chiffrer l’extension de garantie auprès de la compagnie.',
+  },
+  [Categorie.DOMMAGES_AUX_BIENS]: {
+    [NiveauPreuve.ETABLIE]: 'Point clos.',
+    [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]:
+      'Demander une attestation mentionnant cette catégorie de biens et son capital.',
+    [NiveauPreuve.PROBABLE]:
+      'Faire confirmer le périmètre des biens couverts et leur capital aux conditions particulières.',
+    [NiveauPreuve.NON_DEMONTREE]:
+      'Réclamer l’inventaire valorisé et le tableau de garanties : sans eux, aucun capital ne se vérifie.',
+    [NiveauPreuve.ECART_CONFIRME]:
+      'Limiter l’obligation du bail aux biens dont le preneur est propriétaire ou gardien ; à défaut, faire étendre le périmètre assuré.',
+  },
+  [Categorie.PERTES_FINANCIERES]: {
+    [NiveauPreuve.ETABLIE]: 'Point clos.',
+    [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]:
+      'Demander une attestation portant la période d’indemnisation, que les attestations omettent presque toujours.',
+    [NiveauPreuve.PROBABLE]:
+      'Faire confirmer la période d’indemnisation et l’assiette aux conditions particulières.',
+    [NiveauPreuve.NON_DEMONTREE]:
+      'Réclamer les conditions particulières : la période d’indemnisation ne figure jamais sur une attestation.',
+    [NiveauPreuve.ECART_CONFIRME]:
+      'Aligner la durée exigée par le bail sur la période réellement indemnisée, ou faire chiffrer l’allongement de cette période.',
+  },
+  [Categorie.MODALITE]: {
+    [NiveauPreuve.ETABLIE]: 'Point clos.',
+    [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]:
+      'Demander une attestation reprenant cette modalité : une attestation muette ne l’oppose à personne.',
+    [NiveauPreuve.PROBABLE]: 'Faire confirmer la modalité et ses conditions d’application par écrit.',
+    [NiveauPreuve.NON_DEMONTREE]:
+      'Réclamer les conditions particulières : une modalité d’indemnisation ne se déduit pas.',
+    // Une modalité ne se négocie pas et ne s'achète pas en extension : elle se
+    // constate. Le défaut vient presque toujours d'une promesse du bail que la
+    // police ne tient pas.
+    [NiveauPreuve.ECART_CONFIRME]:
+      'Faire constater la modalité réelle aux conditions particulières, puis corriger la promesse du bail qui ne lui correspond pas.',
+  },
+  [Categorie.MECANISME]: {
+    [NiveauPreuve.ETABLIE]: 'Point clos.',
+    [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]:
+      'Demander une attestation portant expressément ce mécanisme : sans mention, il n’est pas opposable.',
+    [NiveauPreuve.PROBABLE]: 'Faire confirmer le mécanisme et son périmètre par écrit de l’assureur.',
+    [NiveauPreuve.NON_DEMONTREE]:
+      'Réclamer les conditions particulières : ce mécanisme ne se présume pas.',
+    // Un mécanisme ne s'achète pas : il s'obtient par un écrit de l'assureur.
+    [NiveauPreuve.ECART_CONFIRME]:
+      'Obtenir l’accord écrit de l’assureur : le bail ne peut pas créer cet engagement à sa place.',
+  },
 }

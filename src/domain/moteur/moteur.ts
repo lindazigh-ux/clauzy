@@ -410,13 +410,7 @@ export function analyser(documents: readonly DocumentAnalyse[]): Analyse {
 
   // Le rapprochement par garantie se calcule UNE fois pour tout le dossier :
   // il ne depend pas du controle, mais des risques que les documents portent.
-  const texte = (role: RoleDocument) =>
-    documents.filter((d) => d.role === role).map((d) => d.texte).join('\n')
-  const rapprochements = rapprocher({
-    obligation: texte('OBLIGATION'),
-    contrat: texte('COUVERTURE'),
-    attestation: texte('ATTESTATION'),
-  })
+  const rapprochements = rapprocher(documents)
 
   // La lecture transversale : elle confronte le document source a lui-meme,
   // et non a un referentiel. Elle ne depend d'aucun controle.

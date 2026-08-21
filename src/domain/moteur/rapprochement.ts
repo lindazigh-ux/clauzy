@@ -17,9 +17,16 @@
  * de le croire.
  */
 import { NOMENCLATURE, garantie } from '../garanties/nomenclature'
-import { reconnaitre, satisfaite, type Reconnaissance } from '../garanties/reconnaissance'
+import { reconnaitreDans, satisfaite, type Reconnaissance } from '../garanties/reconnaissance'
 import { garantiesDe } from '../garanties/rattachement'
-import type { Beneficiaire, Categorie } from '../garanties/types'
+import {
+  ACTION_PAR_CATEGORIE,
+  NiveauPreuve,
+  type Beneficiaire,
+  type Categorie,
+} from '../garanties/types'
+import { passages, type DocumentSource } from './ancrage'
+import { enMois, extraireValeurs, type ValeurExtraite } from './extracteurs'
 
 /**
  * Niveau de preuve — la distinction que le cahier reclame entre « absent » et
@@ -29,37 +36,7 @@ import type { Beneficiaire, Categorie } from '../garanties/types'
  * qu'elle n'a pas trouve la clause. Elle doit dire ce qu'elle sait, et avec
  * quelle certitude.
  */
-export enum NiveauPreuve {
-  /** Garantie identifiee, nommee, dans une piece probante. */
-  ETABLIE = 'ETABLIE',
-  /**
-   * Garantie retrouvee au contrat, ABSENTE de l'attestation fournie.
-   *
-   * Ce n'est ni une conformite, ni un ecart : la couverture existe, mais le
-   * bailleur ne peut pas s'en assurer sur la piece qu'on lui remet. Cela se
-   * corrige par un courrier au courtier, pas par un avenant — et confondre les
-   * deux fait perdre du temps a tout le monde.
-   */
-  JUSTIFICATION_INSUFFISANTE = 'JUSTIFICATION_INSUFFISANTE',
-  /**
-   * Correspondance probable, a confirmer : formulation englobante, ou garantie
-   * connue seulement par une attestation, qui prouve l'existence d'un contrat
-   * mais pas l'etendue de ce qu'il couvre.
-   */
-  PROBABLE = 'PROBABLE',
-  /** Les pieces ne permettent pas de conclure. Ce n'est PAS une absence. */
-  NON_DEMONTREE = 'NON_DEMONTREE',
-  /** Documents suffisants et contradiction claire : l'ecart est confirme. */
-  ECART_CONFIRME = 'ECART_CONFIRME',
-}
-
-export const LIBELLE_PREUVE: Record<NiveauPreuve, string> = {
-  [NiveauPreuve.ETABLIE]: 'Couverture établie',
-  [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]: 'Couverture existante, justification insuffisante',
-  [NiveauPreuve.PROBABLE]: 'Couverture probable',
-  [NiveauPreuve.NON_DEMONTREE]: 'Couverture non démontrée',
-  [NiveauPreuve.ECART_CONFIRME]: 'Écart confirmé',
-}
+export { NiveauPreuve, LIBELLE_PREUVE } from '../garanties/types'
 
 export type Rapprochement = {
   readonly garantieId: string
@@ -83,6 +60,102 @@ export type Rapprochement = {
   readonly conclusion: string
   /** Confusions ecartees, et pourquoi. Jamais un choix silencieux. */
   readonly ecartees: readonly { readonly garantieId: string; readonly raison: string }[]
+  /**
+   * « 2 400 000 € exigés · 900 000 € soutenus », quand les deux cotes portent
+   * une valeur comparable. Null sinon — on ne chiffre jamais au jugé.
+   */
+  readonly chiffrage: string | null
+  /**
+   * Le geste que ce niveau appelle POUR CETTE garantie.
+   *
+   * Il vient du domaine, jamais de l'affichage : la meme phrase se retrouvait
+   * recopiee dans le poste de travail, dans le Word et dans le rapport client,
+   * et les trois pouvaient deriver. Elle n'existe plus qu'ici.
+   */
+  readonly action: string
+}
+
+/**
+ * L'action propre a la garantie si elle en porte une, celle de sa categorie
+ * sinon. Une action generique appliquee a tout — « negocier la clause d'abord,
+ * chiffrer l'extension ensuite » — est fausse une fois sur deux : on ne negocie
+ * pas une franchise, et sur l'assurance de l'immeuble du bailleur, proposer de
+ * souscrire reviendrait a faire financer au preneur un bien qui n'est pas le
+ * sien.
+ */
+const actionPour = (garantieId: string, niveau: NiveauPreuve): string => {
+  const entree = garantie(garantieId)
+  return entree.actions?.[niveau] ?? ACTION_PAR_CATEGORIE[entree.categorie][niveau]
+}
+
+/**
+ * Confronte les valeurs des deux cotes.
+ *
+ * Sans elle, le moteur declarait « couverture etablie » sur une garantie
+ * exigee a 2 400 000 € et souscrite a 900 000 €. Trouver le bon LIBELLE ne
+ * suffit pas : une garantie presente mais insuffisante est un ecart, et c'est
+ * meme l'ecart le plus courant.
+ *
+ * Dans le doute on ne chiffre pas : plusieurs valeurs discordantes dans la
+ * meme stipulation rendraient la comparaison arbitraire (§5.3).
+ */
+type Comparaison = { readonly resume: string; readonly insuffisant: boolean }
+
+const valeurUnique = (texte: string, nature: ValeurExtraite['nature']): ValeurExtraite | null => {
+  const trouvees = extraireValeurs(texte).filter((v) => v.nature === nature)
+  const premiere = trouvees[0]
+  if (premiere === undefined) return null
+  const memeValeur = trouvees.every((v) =>
+    v.nature === 'duree' && premiere.nature === 'duree'
+      ? v.valeur === premiere.valeur && v.unite === premiere.unite
+      : 'valeur' in v && 'valeur' in premiere && v.valeur === premiere.valeur,
+  )
+  return memeValeur ? premiere : null
+}
+
+const decrire = (valeur: ValeurExtraite): string => {
+  switch (valeur.nature) {
+    case 'duree': {
+      const unites: Record<string, string> = {
+        jour: 'jour', semaine: 'semaine', mois: 'mois', annee: 'an',
+      }
+      const unite = unites[valeur.unite] ?? valeur.unite
+      return `${valeur.valeur} ${unite}${valeur.valeur > 1 && unite !== 'mois' ? 's' : ''}`
+    }
+    case 'montant_eur':
+      return `${valeur.valeur.toLocaleString('fr-FR')} €`
+    case 'pourcentage':
+      return `${valeur.valeur} %`
+    case 'date':
+      return valeur.iso
+  }
+}
+
+const comparer = (
+  exigence: Reconnaissance | null,
+  couverture: Reconnaissance | null,
+): Comparaison | null => {
+  if (exigence === null || couverture === null) return null
+
+  for (const nature of ['montant_eur', 'duree', 'pourcentage'] as const) {
+    const exige = valeurUnique(exigence.stipulation.texte, nature)
+    const soutenu = valeurUnique(couverture.stipulation.texte, nature)
+    if (exige === null || soutenu === null) continue
+    if (decrire(exige) === decrire(soutenu)) return null
+
+    const chiffres =
+      exige.nature === 'duree' && soutenu.nature === 'duree'
+        ? { gauche: enMois(exige.valeur, exige.unite), droite: enMois(soutenu.valeur, soutenu.unite) }
+        : exige.nature !== 'duree' && soutenu.nature !== 'duree' && 'valeur' in exige && 'valeur' in soutenu
+          ? { gauche: exige.valeur, droite: soutenu.valeur }
+          : null
+
+    return {
+      resume: `${decrire(exige)} exigés · ${decrire(soutenu)} soutenus`,
+      insuffisant: chiffres !== null && chiffres.droite < chiffres.gauche,
+    }
+  }
+  return null
 }
 
 /** Ce que le moteur a cherche dans les pieces, en clair. */
@@ -100,22 +173,27 @@ const libellesRecherches = (garantieId: string): string[] => {
  * on ne conclut pas a un ecart, on constate qu'on ne peut pas conclure. C'est
  * la difference entre « absent » et « non demontre ».
  */
-export type Sources = {
-  readonly obligation: string
-  /** Conditions particulieres et generales, avenants : les pieces probantes. */
-  readonly contrat: string
-  /** Attestations et courriels : declaratifs. Vides quand rien n'a ete fourni. */
-  readonly attestation: string
-}
-
-export function rapprocher(sources: Sources): Rapprochement[] {
-  const contratFourni = sources.contrat.trim().length > 0
-  const attestationFournie = sources.attestation.trim().length > 0
+/**
+ * Rapproche un jeu de documents.
+ *
+ * Il prend les DOCUMENTS et non des chaines : le decoupage passe par
+ * `moteur/ancrage`, seul endroit qui sait retrancher un en-tete d'article et
+ * rattacher une stipulation a son numero. Passer du texte brut, c'est
+ * redecouper a cote — et c'est ainsi qu'un rapport a fini par citer
+ * « ARTICLE 13 — RENONCIATION À RECOURS » comme la clause en cause.
+ */
+export function rapprocher(documents: readonly DocumentSource[]): Rapprochement[] {
+  const tous = passages(documents)
+  const contratFourni = tous.some((p) => p.role === 'COUVERTURE')
+  const attestationFournie = tous.some((p) => p.role === 'ATTESTATION')
   const piecesFournies = contratFourni || attestationFournie
 
-  const exigences = reconnaitre(sources.obligation, 'OBLIGATION')
-  const couvertures = contratFourni ? reconnaitre(sources.contrat, 'COUVERTURE') : []
-  const attestees = attestationFournie ? reconnaitre(sources.attestation, 'COUVERTURE') : []
+  const lire = (role: DocumentSource['role'], cote: 'OBLIGATION' | 'COUVERTURE') =>
+    tous.filter((p) => p.role === role).flatMap((p) => reconnaitreDans(p, cote))
+
+  const exigences = lire('OBLIGATION', 'OBLIGATION')
+  const couvertures = lire('COUVERTURE', 'COUVERTURE')
+  const attestees = lire('ATTESTATION', 'COUVERTURE')
   const idsCouverts = [...new Set(couvertures.map((c) => c.garantieId))]
   const idsAttestes = [...new Set(attestees.map((c) => c.garantieId))]
 
@@ -140,13 +218,20 @@ export function rapprocher(sources: Sources): Rapprochement[] {
         ? null
         : (attestees.find((c) => c.garantieId === aLAttestation.parQuoi) ?? null)
 
-    const niveau = decider(garantieId, {
-      auContrat,
-      aLAttestation,
-      contratFourni,
-      attestationFournie,
-      piecesFournies,
-    })
+    // Le libellé peut correspondre et le montant manquer : une garantie
+    // présente mais insuffisante reste un écart.
+    const comparaison = comparer(exigence, trouvee)
+
+    const niveau =
+      comparaison?.insuffisant === true && contratFourni
+        ? NiveauPreuve.ECART_CONFIRME
+        : decider(garantieId, {
+            auContrat,
+            aLAttestation,
+            contratFourni,
+            attestationFournie,
+            piecesFournies,
+          })
 
     return {
       garantieId,
@@ -159,13 +244,14 @@ export function rapprocher(sources: Sources): Rapprochement[] {
       satisfaitePar: auContrat.parQuoi ?? aLAttestation.parQuoi,
       niveau,
       recherche: libellesRecherches(garantieId),
-      conclusion: conclure(
-        garantieId,
-        niveau,
-        auContrat.parQuoi ?? aLAttestation.parQuoi,
-        piecesFournies,
-      ),
+      conclusion:
+        comparaison?.insuffisant === true && contratFourni
+          ? `La garantie « ${entree.libelle} » figure aux pièces, mais en deçà de ce que le ` +
+            `document source exige (${comparaison.resume}).`
+          : conclure(garantieId, niveau, auContrat.parQuoi ?? aLAttestation.parQuoi, piecesFournies),
       ecartees: exigence.ecartees,
+      chiffrage: comparaison?.resume ?? null,
+      action: actionPour(garantieId, niveau),
     }
   })
 }
@@ -267,6 +353,7 @@ export type AppuiGarantie = {
    * libelles on a cherche.
    */
   readonly recherche: readonly string[]
+  readonly action: string
 }
 
 export function appuiPourControle(
@@ -300,6 +387,7 @@ export function appuiPourControle(
     satisfaitePar: meilleur.satisfaitePar,
     conclusion: meilleur.conclusion,
     recherche: meilleur.recherche,
+    action: meilleur.action,
   }
 }
 

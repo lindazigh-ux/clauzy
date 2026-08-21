@@ -23,6 +23,17 @@ Garantie responsabilité locative (risques locatifs) : 1 500 000 € par sinistr
 Recours des voisins et des tiers : 1 500 000 € par sinistre.
 Responsabilité civile exploitation : 8 000 000 € par sinistre.`
 
+/** Les documents, tels que le moteur les reçoit désormais. */
+const sources = (o: { obligation: string; contrat?: string; attestation?: string }) => [
+  { id: 'bail', role: 'OBLIGATION' as const, texte: o.obligation },
+  ...(o.contrat === undefined || o.contrat === ''
+    ? []
+    : [{ id: 'cp', role: 'COUVERTURE' as const, texte: o.contrat }]),
+  ...(o.attestation === undefined || o.attestation === ''
+    ? []
+    : [{ id: 'att', role: 'ATTESTATION' as const, texte: o.attestation }]),
+]
+
 const analyse = (bail: string, police: string | null) =>
   analyser([
     { id: 'bail', role: 'OBLIGATION' as const, texte: bail },
@@ -54,7 +65,7 @@ Pertes d’exploitation : douze mois.`
 
   it('accepte une RC occupant, en le disant plutôt qu’en l’affirmant', () => {
     const rcOccupant = 'Responsabilité civile occupant : 3 000 000 € par sinistre.'
-    const rapprochements = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: rcOccupant, attestation: '' })
+    const rapprochements = rapprocher(sources({ obligation: BAIL_ORDINAIRE, contrat: rcOccupant, attestation: '' }))
     const locatifs = rapprochements.find((r) => r.garantieId === 'RISQUES_LOCATIFS')
 
     // Une garantie englobante repond, mais ce n'est pas la ligne exacte : le
@@ -67,7 +78,7 @@ Pertes d’exploitation : douze mois.`
 
 describe('« absent » n’est pas « non démontré »', () => {
   it('sans pièce d’assurance, ne conclut pas à une absence de couverture', () => {
-    const rapprochements = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: '', attestation: '' })
+    const rapprochements = rapprocher(sources({ obligation: BAIL_ORDINAIRE, contrat: '', attestation: '' }))
     for (const rapprochement of rapprochements) {
       expect(rapprochement.niveau, rapprochement.garantieId).toBe(NiveauPreuve.NON_DEMONTREE)
       expect(rapprochement.conclusion).toMatch(/Aucune pièce d’assurance n’a été fournie/)
@@ -75,7 +86,7 @@ describe('« absent » n’est pas « non démontré »', () => {
   })
 
   it('avec les pièces et une garantie manquante, confirme l’écart', () => {
-    const rapprochements = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: 'Responsabilité civile exploitation : 8 000 000 €.', attestation: '' })
+    const rapprochements = rapprocher(sources({ obligation: BAIL_ORDINAIRE, contrat: 'Responsabilité civile exploitation : 8 000 000 €.', attestation: '' }))
     const locatifs = rapprochements.find((r) => r.garantieId === 'RISQUES_LOCATIFS')
     expect(locatifs?.niveau).toBe(NiveauPreuve.ECART_CONFIRME)
   })
@@ -83,7 +94,7 @@ describe('« absent » n’est pas « non démontré »', () => {
 
 describe('la trace du raisonnement', () => {
   it('dit ce qui a été cherché dans les pièces', () => {
-    const locatifs = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' }).find(
+    const locatifs = rapprocher(sources({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' })).find(
       (r) => r.garantieId === 'RISQUES_LOCATIFS',
     )
     // Le praticien doit pouvoir controler le raisonnement, pas le croire.
@@ -92,7 +103,7 @@ describe('la trace du raisonnement', () => {
   })
 
   it('cite la stipulation exacte, des deux côtés', () => {
-    const locatifs = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' }).find(
+    const locatifs = rapprocher(sources({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' })).find(
       (r) => r.garantieId === 'RISQUES_LOCATIFS',
     )
     expect(locatifs?.exigence?.stipulation.texte).toMatch(/locaux loués/)
@@ -107,7 +118,7 @@ describe('la trace du raisonnement', () => {
   })
 
   it('nomme le bénéficiaire réel, qui n’est pas celui qui souscrit', () => {
-    const rapprochements = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' })
+    const rapprochements = rapprocher(sources({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' }))
     // Le preneur souscrit, le bailleur est protege : c'est ce decalage qui
     // fait l'interet de l'analyse.
     expect(rapprochements.find((r) => r.garantieId === 'RISQUES_LOCATIFS')?.beneficiaire).toBe(
@@ -120,7 +131,7 @@ describe('le vrai transfert reste détecté', () => {
   it('signale une obligation d’assurer l’immeuble du bailleur', () => {
     const bail = `Article 14 — Le Preneur assurera l’immeuble appartenant au Bailleur,
 en ce compris la structure, le clos et le couvert, pour sa valeur de reconstruction.`
-    const rapprochements = rapprocher({ obligation: bail, contrat: POLICE_QUI_REPOND, attestation: '' })
+    const rapprochements = rapprocher(sources({ obligation: bail, contrat: POLICE_QUI_REPOND, attestation: '' }))
     const ids = rapprochements.map((r) => r.garantieId)
     expect(ids).toContain('ASSURANCE_IMMEUBLE_BAILLEUR')
     // Et ne le confond pas avec une simple responsabilité locative.
@@ -139,7 +150,7 @@ describe('le rattachement des contrôles aux garanties', () => {
   it('laisse sans garantie les contrôles qu’aucune pièce ne démontre', () => {
     // Un delai d'attestation, une identite, une hierarchie contractuelle : ces
     // points se tranchent sur le document source seul.
-    const rapprochements = rapprocher({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' })
+    const rapprochements = rapprocher(sources({ obligation: BAIL_ORDINAIRE, contrat: POLICE_QUI_REPOND, attestation: '' }))
     const sansObjet = ['FOR-01', 'DOC-01', 'ART-01']
     for (const controleId of sansObjet) {
       expect(appuiPourControle(controleId, rapprochements), controleId).toBeNull()
@@ -166,8 +177,8 @@ describe('l’attestation, troisième source', () => {
 Garantie responsabilité locative (risques locatifs) : 1 500 000 € par sinistre.
 Recours des voisins et des tiers : 1 500 000 € par sinistre.`
 
-  const trouver = (sources: Parameters<typeof rapprocher>[0], id: string) =>
-    rapprocher(sources).find((r) => r.garantieId === id)
+  const trouver = (o: { obligation: string; contrat?: string; attestation?: string }, id: string) =>
+    rapprocher(sources(o)).find((r) => r.garantieId === id)
 
   it('signale une garantie au contrat, absente de l’attestation', () => {
     // Le cas le plus frequent, et le plus mal traite : la couverture existe,

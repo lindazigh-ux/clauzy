@@ -2,7 +2,7 @@
 
 import { LIBELLE_STATUT, Statut } from '@/domain/controles'
 import { Beneficiaire, LIBELLE_BENEFICIAIRE } from '@/domain/garanties/types'
-import { LIBELLE_PREUVE, NiveauPreuve } from '@/domain/moteur/rapprochement'
+import { LIBELLE_PREUVE } from '@/domain/moteur/rapprochement'
 import {
   MENTION_LIMITE,
   calendrier,
@@ -48,15 +48,6 @@ const dateLongue = (iso: string): string =>
 /** « Article 12 », ou l'intitulé quand le document ne numérote pas. */
 const reference = (article: string | null, intitule: string | null): string =>
   article !== null ? `Article ${article}` : (intitule ?? 'Stipulation non numérotée')
-
-const GESTE: Record<NiveauPreuve, string> = {
-  [NiveauPreuve.ETABLIE]: 'Point clos.',
-  [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]:
-    'Demander une attestation détaillant cette garantie. Le contrat n’est pas en cause.',
-  [NiveauPreuve.PROBABLE]: 'Confirmer aux conditions particulières avant de conclure.',
-  [NiveauPreuve.NON_DEMONTREE]: 'Réclamer la pièce manquante.',
-  [NiveauPreuve.ECART_CONFIRME]: 'Négocier la clause d’abord, chiffrer l’extension ensuite.',
-}
 
 export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
   const lignes = resultatsAffiches(dossier)
@@ -251,8 +242,16 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
                       ? '—'
                       : LIBELLE_BENEFICIAIRE[rapprochement.beneficiaire]}
                   </td>
-                  <td>{LIBELLE_PREUVE[rapprochement.niveau]}</td>
-                  <td>{GESTE[rapprochement.niveau]}</td>
+                  <td>
+                    {LIBELLE_PREUVE[rapprochement.niveau]}
+                    {rapprochement.chiffrage !== null && (
+                      <>
+                        <br />
+                        <span className={styles.chiffre}>{rapprochement.chiffrage}</span>
+                      </>
+                    )}
+                  </td>
+                  <td>{rapprochement.action}</td>
                 </tr>
               ))}
             </tbody>

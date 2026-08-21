@@ -149,6 +149,14 @@
   color: var(--faint);
 }
 
+/* Un écart chiffré se lit avant tout le reste : c'est lui qui hiérarchise. */
+.chiffrage {
+  font-family: var(--mono);
+  font-size: 0.86rem;
+  color: var(--rouge);
+  font-variant-numeric: tabular-nums;
+}
+
 .exclusions {
   margin: 0;
   padding-left: calc(var(--pas) * 4);

@@ -21,11 +21,19 @@
 import { NOMENCLATURE, garantie } from './nomenclature'
 import type { Garantie, Motif } from './types'
 
-/** Une stipulation : la phrase qui porte la reconnaissance, avec sa position. */
+/**
+ * Une stipulation : la phrase qui porte la reconnaissance, avec sa position.
+ *
+ * `article` et `intitule` sont renseignes des que la stipulation vient d'un
+ * document decoupe par `moteur/ancrage` — ce qui permet a un rapport de dire
+ * « article 12.4 » plutot que « quelque part dans le bail ».
+ */
 export type Stipulation = {
   readonly texte: string
   readonly debut: number
   readonly fin: number
+  readonly article?: string | null
+  readonly intitule?: string | null
 }
 
 export type Reconnaissance = {
@@ -98,7 +106,7 @@ type Brute = {
   expres: boolean
 }
 
-const reconnaitreDans = (
+export const reconnaitreDans = (
   stipulation: Stipulation,
   cote: 'OBLIGATION' | 'COUVERTURE',
 ): Reconnaissance[] => {
