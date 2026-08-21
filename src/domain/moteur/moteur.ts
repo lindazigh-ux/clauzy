@@ -41,6 +41,13 @@ import {
 } from '../controles'
 
 import { SEUIL_CONCLUSION, SEUIL_SIGNAL, evaluer, type Correspondance, type Evaluation } from './confiance'
+import {
+  NiveauPreuve,
+  appuiPourControle,
+  rapprocher,
+  type AppuiGarantie,
+  type Rapprochement,
+} from './rapprochement'
 import { enMois, extraireValeurs, type ValeurExtraite } from './extracteurs'
 import { segmenter, type Segment } from './segmentation'
 
@@ -82,6 +89,8 @@ export type Analyse = {
   readonly resultats: readonly ResultatMoteur[]
   readonly synthese: Synthese
   readonly pieceCouvertureFournie: boolean
+  /** Le rapprochement risque par risque, independamment des controles. */
+  readonly rapprochements: readonly Rapprochement[]
   readonly dureeMs: number
 }
 
@@ -108,6 +117,7 @@ const decider = (
   couverture: Evaluation,
   pieceFournie: boolean,
   chiffrage: Chiffrage | null,
+  appui: AppuiGarantie | null,
 ): Decision => {
   const cote = bande(obligation.confiance)
 
@@ -152,6 +162,33 @@ const decider = (
       motif:
         'L’écart ne peut apparaître qu’en confrontant l’obligation à la couverture, ' +
         'et aucune pièce d’assurance n’a été fournie.',
+    }
+  }
+
+  // Le rapprochement par GARANTIE prime sur les motifs du controle.
+  //
+  // C'est la correction de fond : le bail ecrit « assurer les locaux loués
+  // contre l'incendie », la police ecrit « responsabilité locative ». Chercher
+  // « incendie » dans la police et conclure a un ecart etait un faux positif
+  // affirme a 100 % — le defaut le plus couteux qu'un outil de conseil puisse
+  // produire, puisqu'il envoie negocier une garantie deja acquise.
+  if (appui !== null) {
+    if (appui.niveau === NiveauPreuve.ETABLIE || appui.niveau === NiveauPreuve.PROBABLE) {
+      if (chiffrage !== null && chiffrage.insuffisant) {
+        return {
+          statut: Statut.ECART,
+          motif:
+            `La garantie attendue est portée par les pièces, mais en deçà de ce que le ` +
+            `document source exige (${chiffrage.resume}).`,
+        }
+      }
+      return {
+        statut: appui.niveau === NiveauPreuve.ETABLIE ? Statut.CONFORME : Statut.NON_DETECTE,
+        motif: appui.conclusion,
+      }
+    }
+    if (appui.niveau === NiveauPreuve.ECART_CONFIRME && bande(couverture.confiance) === 'ABSENT') {
+      return { statut: Statut.ECART, motif: appui.conclusion }
     }
   }
 
@@ -348,6 +385,16 @@ export function analyser(documents: readonly DocumentAnalyse[]): Analyse {
 
   const pieceCouvertureFournie = documents.some((d) => d.role === 'COUVERTURE')
 
+  // Le rapprochement par garantie se calcule UNE fois pour tout le dossier :
+  // il ne depend pas du controle, mais des risques que les documents portent.
+  const texte = (role: RoleDocument) =>
+    documents.filter((d) => d.role === role).map((d) => d.texte).join('\n')
+  const rapprochements = rapprocher(
+    texte('OBLIGATION'),
+    texte('COUVERTURE'),
+    pieceCouvertureFournie,
+  )
+
   // Le squelette fixe la longueur du tableau avant toute lecture : c'est la
   // garantie mecanique qu'aucun controle ne peut disparaitre (brief §5.2).
   const resultats: ResultatMoteur[] = squeletteResultats().map((vierge) => {
@@ -362,12 +409,14 @@ export function analyser(documents: readonly DocumentAnalyse[]): Analyse {
       : { confiance: 0, correspondances: [], base: 0, signaux: [] }
 
     const chiffrage = chiffrer(obligation, couverture)
+    const appui = appuiPourControle(controle.id, rapprochements)
     const { statut, motif } = decider(
       controle,
       obligation,
       couverture,
       pieceCouvertureFournie,
       chiffrage,
+      appui,
     )
 
     const confiance =
@@ -393,6 +442,9 @@ export function analyser(documents: readonly DocumentAnalyse[]): Analyse {
         signaux: [
           ...obligation.signaux.map((s) => `Côté bail — ${s.libelle} : ${s.explication}`),
           ...couverture.signaux.map((s) => `Côté pièces — ${s.libelle} : ${s.explication}`),
+          // La trace du raisonnement par garantie : ce qui a ete cherche, et
+          // ce qui a ete conclu. Le praticien doit pouvoir le controler.
+          ...(appui === null ? [] : [`Garantie — ${appui.conclusion}`]),
         ],
       },
     }
@@ -402,6 +454,7 @@ export function analyser(documents: readonly DocumentAnalyse[]): Analyse {
     resultats,
     synthese: formulerSynthese(resultats),
     pieceCouvertureFournie,
+    rapprochements,
     dureeMs: Math.round(performance.now() - depart),
   }
 }
