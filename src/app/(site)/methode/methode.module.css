@@ -1,0 +1,56 @@
+.etapes {
+  list-style: none;
+  counter-reset: none;
+  padding: 0;
+  margin: calc(var(--pas) * 10) 0 0;
+  display: grid;
+  gap: calc(var(--pas) * 8);
+}
+
+.etape {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: calc(var(--pas) * 5);
+  align-items: start;
+  border-top: 1px solid var(--ligne);
+  padding-top: calc(var(--pas) * 6);
+}
+
+.etape:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.numero {
+  font-family: var(--mono);
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--accent-doux);
+  letter-spacing: -0.03em;
+}
+
+.etapeTitre {
+  font-size: 1.12rem;
+  font-weight: 700;
+  margin-bottom: calc(var(--pas) * 3);
+}
+
+.detail {
+  font-size: 0.9rem;
+  color: var(--faint);
+  border-left: 2px solid var(--ligne);
+  padding-left: calc(var(--pas) * 4);
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .etape {
+    grid-template-columns: 1fr;
+    gap: calc(var(--pas) * 3);
+  }
+
+  .numero {
+    font-size: 1.1rem;
+  }
+}

@@ -1,0 +1,67 @@
+.pieces {
+  display: grid;
+  gap: calc(var(--pas) * 5);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  margin: calc(var(--pas) * 10) 0 0;
+}
+
+.piece {
+  background: var(--carte);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 6);
+  box-shadow: var(--ombre-fine);
+}
+
+.pieceFormat {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--accent-fort);
+  background: var(--accent-pale);
+  border: 1px solid var(--accent-doux);
+  border-radius: 5px;
+  padding: 0.2em 0.55em;
+  margin-bottom: calc(var(--pas) * 4);
+}
+
+.piece h2 {
+  font-size: 1.1rem;
+  margin-bottom: calc(var(--pas) * 3);
+}
+
+.piece p {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.piece ul:last-child {
+  margin-bottom: 0;
+}
+
+.mention {
+  background: var(--surface);
+  border: 1px solid var(--ligne);
+  border-left: 3px solid var(--ardoise);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 5) calc(var(--pas) * 6);
+  margin: calc(var(--pas) * 6) 0 0;
+}
+
+.mentionEtiquette {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ardoise);
+  margin-bottom: calc(var(--pas) * 3);
+}
+
+.mention p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+  max-width: 72ch;
+}

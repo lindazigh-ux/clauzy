@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+import { partage } from '@/contenu/site'
+
 import { EMPREINTE_BUILD } from '@/lib/build-info'
 import { CATALOGUE_ENDPOINTS, CLES_INTERDITES } from '@/lib/net'
 
@@ -9,7 +11,14 @@ import styles from './securite.module.css'
 export const metadata: Metadata = {
   title: 'Sécurité',
   description:
-    'Ce qui reste dans votre navigateur, ce qui peut en sortir, et comment Clauzy le garantit techniquement.',
+    'Ce qui reste dans votre navigateur, ce qui peut en sortir, et comment Clauzy le garantit techniquement. Le catalogue exhaustif des champs sortants est publié ici.',
+  ...partage({
+    titre: 'Sécurité technique — Clauzy',
+    description:
+      'Le catalogue exhaustif des champs que l’application peut transmettre, généré depuis le code lui-même.',
+    chemin: '/securite',
+    type: 'article',
+  }),
 }
 
 /**
@@ -32,10 +41,6 @@ export default function Securite() {
 
   return (
     <main className="page">
-      <Link href="/" className={styles.retour}>
-        Retour à l’accueil
-      </Link>
-
       <h1>Vos documents ne quittent pas votre navigateur</h1>
       <p className={styles.chapo}>
         Clauzy analyse des baux et des polices d’assurance. Ce sont des documents que l’on ne
@@ -163,6 +168,12 @@ export default function Securite() {
         <p>
           Communiquez-la à votre direction des systèmes d’information ou à votre délégué à la
           protection des données : elle identifie la version auditée.
+        </p>
+        <p>
+          Les mêmes faits, sous leur forme contractuelle : la{' '}
+          <Link href="/confidentialite">politique de confidentialité</Link> et l’
+          <Link href="/dpa">accord de traitement des données</Link>, dont l’article 2 précise ce
+          qui n’entre pas dans son périmètre.
         </p>
       </section>
     </main>

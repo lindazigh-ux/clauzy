@@ -1,0 +1,422 @@
+/**
+ * Habillage du site marketing (brief §8, §9).
+ *
+ * Une seule feuille pour toutes les pages publiques : l'en-tete, le pied, et
+ * les quelques formes qui reviennent — le chapo, la carte, l'encadre, le
+ * tableau. Une page qui invente sa propre carte fait deriver le systeme ; la
+ * regle est d'ajouter ici plutot qu'a cote.
+ */
+
+/* --- en-tete ------------------------------------------------------------- */
+
+.entete {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--ligne);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+}
+
+.enteteContenu {
+  max-width: var(--largeur-page);
+  margin: 0 auto;
+  padding: calc(var(--pas) * 4) calc(var(--pas) * 5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--pas) * 3) calc(var(--pas) * 6);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.marque {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--pas) * 2);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  font-size: 1.1rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.sceau {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+
+.navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--pas) * 1);
+}
+
+.lienNav {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: calc(var(--pas) * 2) calc(var(--pas) * 3);
+  border-radius: var(--rayon);
+}
+
+.lienNav:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.lienNavActif {
+  color: var(--accent-fort);
+  background: var(--accent-pale);
+}
+
+/* --- appels a l'action ---------------------------------------------------- */
+
+.bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--pas) * 2);
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 5);
+  border-radius: var(--rayon);
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.boutonPrimaire {
+  composes: bouton;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.boutonPrimaire:hover {
+  background: var(--accent-fort);
+  border-color: var(--accent-fort);
+  color: #ffffff;
+}
+
+.boutonSecondaire {
+  composes: bouton;
+  background: var(--bg);
+  border-color: var(--ligne-forte);
+  color: var(--ink);
+}
+
+.boutonSecondaire:hover {
+  border-color: var(--accent);
+  color: var(--accent-fort);
+  background: var(--accent-pale);
+}
+
+.appels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--pas) * 3);
+  margin: calc(var(--pas) * 7) 0 calc(var(--pas) * 4);
+}
+
+.souscrit {
+  font-size: 0.85rem;
+  color: var(--faint);
+  margin: 0 0 calc(var(--pas) * 4);
+}
+
+/* --- formes de texte ------------------------------------------------------ */
+
+.chapo {
+  font-size: clamp(1.05rem, 1rem + 0.4vw, 1.22rem);
+  color: var(--muted);
+  max-width: 60ch;
+  line-height: 1.55;
+}
+
+.surtitre {
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--accent-fort);
+  margin-bottom: calc(var(--pas) * 3);
+}
+
+.accroche {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent-fort);
+}
+
+.section {
+  border-top: 1px solid var(--ligne);
+  margin-top: calc(var(--pas) * 14);
+  padding-top: calc(var(--pas) * 10);
+}
+
+.sectionSerree {
+  composes: section;
+  margin-top: calc(var(--pas) * 10);
+  padding-top: calc(var(--pas) * 8);
+}
+
+/* --- cartes et grilles ---------------------------------------------------- */
+
+.grille {
+  display: grid;
+  gap: calc(var(--pas) * 4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+}
+
+.grilleLarge {
+  composes: grille;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+
+.carte {
+  background: var(--carte);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 5);
+  box-shadow: var(--ombre-fine);
+}
+
+.carteLien {
+  composes: carte;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.carteLien:hover {
+  border-color: var(--accent-doux);
+  box-shadow: var(--ombre-portee);
+  color: inherit;
+}
+
+.carte h3 {
+  margin-bottom: calc(var(--pas) * 2);
+}
+
+.carte p:last-child {
+  margin-bottom: 0;
+}
+
+.carteMeta {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  color: var(--faint);
+  text-transform: uppercase;
+}
+
+.encadre {
+  background: var(--accent-pale);
+  border: 1px solid var(--accent-doux);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 6);
+  margin: calc(var(--pas) * 8) 0;
+}
+
+.encadre > :last-child {
+  margin-bottom: 0;
+}
+
+/* --- listes --------------------------------------------------------------- */
+
+.listeCochee {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 calc(var(--pas) * 4);
+  display: grid;
+  gap: calc(var(--pas) * 2);
+}
+
+.listeCochee li {
+  position: relative;
+  padding-left: calc(var(--pas) * 6);
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.listeCochee li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.52em;
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: rotate(-45deg);
+}
+
+.listeNiee {
+  composes: listeCochee;
+}
+
+.listeNiee li::before {
+  border: 0;
+  top: 0.68em;
+  width: 9px;
+  height: 0;
+  border-top: 2px solid var(--faint);
+  transform: none;
+}
+
+/* --- tableaux -------------------------------------------------------------- */
+
+.tableauEnveloppe {
+  overflow-x: auto;
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon-lg);
+  margin: 0 0 calc(var(--pas) * 6);
+  background: var(--carte);
+}
+
+.tableau {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.tableau th,
+.tableau td {
+  text-align: left;
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 4);
+  border-bottom: 1px solid var(--ligne);
+  vertical-align: top;
+}
+
+.tableau thead th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent-fort);
+  background: var(--accent-pale);
+  white-space: nowrap;
+}
+
+.tableau tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.reference {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  color: var(--accent-fort);
+  white-space: nowrap;
+}
+
+/* --- pied de page ---------------------------------------------------------- */
+
+.pied {
+  border-top: 1px solid var(--ligne);
+  background: var(--surface);
+  margin-top: calc(var(--pas) * 16);
+}
+
+.piedContenu {
+  max-width: var(--largeur-page);
+  margin: 0 auto;
+  padding: calc(var(--pas) * 12) calc(var(--pas) * 5) calc(var(--pas) * 8);
+  display: grid;
+  gap: calc(var(--pas) * 8);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+}
+
+.piedColonne h2 {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--faint);
+  margin-bottom: calc(var(--pas) * 3);
+}
+
+.piedColonne ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: calc(var(--pas) * 2);
+}
+
+.piedColonne a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.piedColonne a:hover {
+  color: var(--accent-fort);
+  text-decoration: underline;
+}
+
+.piedMention {
+  max-width: var(--largeur-page);
+  margin: 0 auto;
+  padding: calc(var(--pas) * 5) calc(var(--pas) * 5) calc(var(--pas) * 10);
+  border-top: 1px solid var(--ligne);
+  color: var(--faint);
+  font-size: 0.82rem;
+}
+
+.piedMention p {
+  max-width: 76ch;
+  margin: 0 0 calc(var(--pas) * 2);
+}
+
+/* --- fil d'Ariane ----------------------------------------------------------- */
+
+.fil {
+  font-size: 0.85rem;
+  color: var(--faint);
+  margin: 0 0 calc(var(--pas) * 5);
+}
+
+/* Souligne d'emblee : un lien dans un bloc de texte ne peut pas se distinguer
+   par la seule couleur (WCAG 1.4.1). */
+.fil a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-color: var(--ligne-forte);
+}
+
+.fil a:hover {
+  color: var(--accent-fort);
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .entete {
+    position: static;
+  }
+
+  .enteteContenu {
+    padding: calc(var(--pas) * 3) calc(var(--pas) * 4);
+  }
+
+  .navigation {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    margin: 0 calc(var(--pas) * -3);
+    padding: 0 calc(var(--pas) * 3);
+  }
+
+  .lienNav {
+    white-space: nowrap;
+  }
+}

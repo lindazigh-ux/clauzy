@@ -21,6 +21,25 @@ const STATUTS_DOSSIER = ['BROUILLON', 'EN_COURS', 'LIVRE', 'CLOS'] as const
 const PLANS = ['ESSAI', 'PRATICIEN', 'CABINET', 'GRANDS_COMPTES'] as const
 const PERIODICITES = ['MENSUEL', 'ANNUEL'] as const
 
+/**
+ * Motifs de demande de demonstration, en enumeration fermee.
+ *
+ * Un champ de message libre serait la premiere breche : le §2 n'autorise a
+ * sortir que l'identite, l'organisation, l'abonnement, les quotas, les
+ * metadonnees de dossier saisies a la main et des statistiques anonymes. Un
+ * texte libre n'entre dans aucune de ces cases. Le besoin se choisit donc dans
+ * une liste, et le detail se dit de vive voix.
+ */
+const BESOINS_DEMO = [
+  'DECOUVERTE',
+  'EQUIPE',
+  'REFERENTIEL_SUR_MESURE',
+  'SECURITE_ET_DPA',
+  'INTEGRATION',
+] as const
+
+const TAILLES_EQUIPE = ['1', '2-5', '6-20', '21-100', '100+'] as const
+
 export const CATALOGUE_ENDPOINTS = {
   'auth.inscription': {
     methode: 'POST',
@@ -92,6 +111,25 @@ export const CATALOGUE_ENDPOINTS = {
       gravite: { type: 'nombre', valeurs: [1, 2, 3], justification: 'Gravité du contrôle (§2).' },
       dureeMs: { type: 'nombre', justification: 'Durée d’analyse (§2).' },
       horodatage: { type: 'chaine', longueurMax: 32, justification: 'Horodatage ISO 8601.' },
+    },
+  },
+  'contact.rapportExemple': {
+    methode: 'POST',
+    chemin: '/api/contact/rapport-exemple',
+    champs: {
+      email: { type: 'chaine', longueurMax: 320, obligatoire: true, justification: 'Identité de la personne qui demande le rapport d’exemple (§2). Le rapport porte sur un bail SYNTHÉTIQUE : aucune pièce client n’intervient.' },
+      organisation: { type: 'chaine', longueurMax: 160, justification: 'Organisation du demandeur (§2), jamais le client final d’un dossier.' },
+    },
+  },
+  'contact.demo': {
+    methode: 'POST',
+    chemin: '/api/contact/demo',
+    champs: {
+      email: { type: 'chaine', longueurMax: 320, obligatoire: true, justification: 'Identité du demandeur (§2).' },
+      nom: { type: 'chaine', longueurMax: 120, justification: 'Identité du demandeur — jamais un nom de client ni de fichier.' },
+      organisation: { type: 'chaine', longueurMax: 160, justification: 'Organisation du demandeur (§2).' },
+      tailleEquipe: { type: 'chaine', longueurMax: 8, valeurs: TAILLES_EQUIPE, justification: 'Dimensionnement de l’offre (§10). Énumération fermée.' },
+      besoin: { type: 'chaine', longueurMax: 32, valeurs: BESOINS_DEMO, justification: 'Motif de la demande, en énumération fermée (§10). Pas de texte libre : voir BESOINS_DEMO.' },
     },
   },
   'abonnement.checkout': {

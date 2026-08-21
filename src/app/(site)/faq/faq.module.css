@@ -1,0 +1,27 @@
+.entrees {
+  display: grid;
+  gap: calc(var(--pas) * 5);
+  margin-top: calc(var(--pas) * 5);
+}
+
+.entree {
+  border-left: 2px solid var(--accent-doux);
+  padding-left: calc(var(--pas) * 5);
+}
+
+.question {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: calc(var(--pas) * 3);
+}
+
+.reponse {
+  color: var(--muted);
+  font-size: 0.96rem;
+  margin-bottom: calc(var(--pas) * 3);
+}
+
+.entree p:last-child {
+  margin-bottom: 0;
+}

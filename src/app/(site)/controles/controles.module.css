@@ -1,0 +1,200 @@
+/**
+ * Pages de contrôles (brief §9) — le contenu SEO à forte valeur.
+ *
+ * La forme sert la lecture longue : une fiche par contrôle, dense mais
+ * respirée, où l'obligation, la conséquence et la correction se lisent dans
+ * cet ordre — celui du rapport.
+ */
+
+.sommaire {
+  display: grid;
+  gap: calc(var(--pas) * 3);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  margin: calc(var(--pas) * 8) 0;
+}
+
+.familleCarte {
+  display: grid;
+  gap: calc(var(--pas) * 2);
+  align-content: start;
+  background: var(--carte);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 5);
+  box-shadow: var(--ombre-fine);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.familleCarte:hover {
+  border-color: var(--accent-doux);
+  box-shadow: var(--ombre-portee);
+  color: inherit;
+}
+
+.familleTitre {
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.familleReferences {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--accent-fort);
+  letter-spacing: 0.02em;
+}
+
+.familleResume {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* --- fiche d'un contrôle --------------------------------------------------- */
+
+.fiche {
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon-lg);
+  background: var(--carte);
+  padding: calc(var(--pas) * 6);
+  margin: 0 0 calc(var(--pas) * 5);
+  box-shadow: var(--ombre-fine);
+  scroll-margin-top: 90px;
+}
+
+.ficheTete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(var(--pas) * 2) calc(var(--pas) * 4);
+  margin-bottom: calc(var(--pas) * 4);
+}
+
+.ficheId {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent-fort);
+  background: var(--accent-pale);
+  border: 1px solid var(--accent-doux);
+  border-radius: 5px;
+  padding: 0.15em 0.5em;
+}
+
+.ficheTitre {
+  font-size: 1.08rem;
+  font-weight: 700;
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 200px;
+}
+
+.jetons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--pas) * 2);
+}
+
+.jeton {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  padding: 0.2em 0.5em;
+  border: 1px solid var(--ligne-forte);
+  color: var(--muted);
+  background: var(--surface);
+  white-space: nowrap;
+}
+
+.jetonCritique {
+  composes: jeton;
+  color: var(--rouge);
+  background: var(--rouge-doux);
+  border-color: var(--rouge-ligne);
+}
+
+.jetonNegocier {
+  composes: jeton;
+  color: var(--ambre);
+  background: var(--ambre-doux);
+  border-color: var(--ambre-ligne);
+}
+
+.jetonVigilance {
+  composes: jeton;
+  color: var(--ardoise);
+  background: var(--ardoise-doux);
+  border-color: var(--ardoise-ligne);
+}
+
+.obligation {
+  font-size: 1rem;
+  color: var(--ink);
+  margin-bottom: calc(var(--pas) * 5);
+}
+
+.lignes {
+  display: grid;
+  gap: calc(var(--pas) * 4);
+  border-top: 1px solid var(--ligne);
+  padding-top: calc(var(--pas) * 5);
+}
+
+.ligne {
+  display: grid;
+  gap: calc(var(--pas) * 1);
+  grid-template-columns: minmax(160px, 190px) 1fr;
+}
+
+.ligneEtiquette {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--faint);
+  padding-top: 0.15em;
+}
+
+.ligneTexte {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+  max-width: 62ch;
+}
+
+.ligneTexte strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.sansRepli {
+  color: var(--ardoise);
+  font-style: normal;
+}
+
+.redaction {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--ink);
+  border-left: 2px solid var(--accent-doux);
+  padding-left: calc(var(--pas) * 4);
+  margin: 0;
+  max-width: 62ch;
+}
+
+@media (max-width: 640px) {
+  .fiche {
+    padding: calc(var(--pas) * 5) calc(var(--pas) * 4);
+  }
+
+  .ligne {
+    grid-template-columns: 1fr;
+    gap: calc(var(--pas) * 1);
+  }
+}

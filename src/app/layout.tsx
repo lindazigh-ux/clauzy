@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { IBM_Plex_Mono, Manrope, Newsreader } from 'next/font/google'
 
+import { ORIGINE } from '@/contenu/site'
+
 import './globals.css'
 
 /**
@@ -33,6 +35,9 @@ const plexMono = IBM_Plex_Mono({
 })
 
 export const metadata: Metadata = {
+  // Sans `metadataBase`, Next rend les URL d'Open Graph en relatif — et un
+  // relatif ne se partage pas : les reseaux sociaux le rejettent (§9).
+  metadataBase: new URL(ORIGINE),
   title: {
     default: 'Clauzy — le bail promet, la police suit-elle ?',
     template: '%s — Clauzy',
@@ -40,7 +45,38 @@ export const metadata: Metadata = {
   description:
     'Clauzy réconcilie une obligation contractuelle avec la couverture d’assurance réellement souscrite, et produit une note de conseil opposable. Vos documents ne quittent jamais votre navigateur.',
   applicationName: 'Clauzy',
-  robots: { index: true, follow: true },
+  authors: [{ name: 'Clauzy' }],
+  keywords: [
+    'bail commercial',
+    'assurance',
+    'conformité assurantielle',
+    'renonciation à recours',
+    'perte d’exploitation',
+    'attestation d’assurance',
+    'audit de bail',
+  ],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    siteName: 'Clauzy',
+    url: ORIGINE,
+    title: 'Clauzy — le bail promet, la police suit-elle ?',
+    description:
+      'Quarante contrôles entre un bail commercial et la couverture réellement souscrite. L’analyse se fait dans votre navigateur : aucun document n’est transmis.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Clauzy — le bail promet, la police suit-elle ?',
+    description:
+      'Quarante contrôles entre un bail commercial et la couverture réellement souscrite. Vos documents ne quittent pas votre navigateur.',
+  },
+  alternates: { canonical: ORIGINE },
+  category: 'business',
 }
 
 export default function RacineLayout({ children }: { children: React.ReactNode }) {

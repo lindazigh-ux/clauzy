@@ -17,7 +17,9 @@
     "verifier": "npm run typecheck && npm run test && npm run lint",
     "budget": "node scripts/budget-js.mjs",
     "verifier:complet": "npm run verifier && npm run build && npm run budget",
-    "demo": "node scripts/demo/construire.mjs"
+    "demo": "node scripts/demo/construire.mjs",
+    "favicon": "node scripts/favicon.mjs",
+    "lighthouse": "node scripts/lighthouse.mjs"
   },
   "dependencies": {
     "@kenjiuno/msgreader": "^1.28.0",
@@ -35,6 +37,7 @@
     "esbuild": "^0.28.2",
     "eslint": "9.39.0",
     "eslint-config-next": "16.3.1",
+    "lighthouse": "^13.4.1",
     "playwright": "^1.62.1",
     "typescript": "5.9.3",
     "vitest": "4.1.11"

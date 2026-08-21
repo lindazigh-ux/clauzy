@@ -145,12 +145,6 @@
   font-size: 1.05rem;
 }
 
-.retour {
-  display: inline-block;
-  margin-bottom: calc(var(--pas) * 6);
-  font-size: 0.9rem;
-}
-
 .legende {
   caption-side: bottom;
   text-align: left;

@@ -1,0 +1,111 @@
+.plans {
+  display: grid;
+  gap: calc(var(--pas) * 5);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  margin: calc(var(--pas) * 10) 0 0;
+  align-items: start;
+}
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--carte);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 6);
+  box-shadow: var(--ombre-fine);
+  height: 100%;
+}
+
+.planMisEnAvant {
+  composes: plan;
+  border-color: var(--accent);
+  box-shadow: var(--ombre-portee);
+}
+
+.ruban {
+  position: absolute;
+  top: calc(var(--pas) * -2.5);
+  left: calc(var(--pas) * 6);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  background: var(--accent);
+  border-radius: 4px;
+  padding: 0.25em 0.6em;
+}
+
+.planNom {
+  font-size: 1.15rem;
+  margin-bottom: calc(var(--pas) * 2);
+}
+
+.pourQui {
+  font-size: 0.9rem;
+  color: var(--muted);
+  min-height: 3.4em;
+  margin-bottom: calc(var(--pas) * 4);
+}
+
+.prix {
+  margin: 0 0 calc(var(--pas) * 1);
+  font-variant-numeric: tabular-nums;
+}
+
+.prix strong {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.prixUnite {
+  font-size: 0.85rem;
+  color: var(--faint);
+}
+
+.prixAnnuel {
+  font-size: 0.82rem;
+  color: var(--accent-fort);
+  margin-bottom: calc(var(--pas) * 5);
+  min-height: 2.4em;
+}
+
+.plan ul {
+  flex: 1 1 auto;
+}
+
+.plan a {
+  margin-top: calc(var(--pas) * 4);
+  width: 100%;
+}
+
+.questions {
+  margin: calc(var(--pas) * 6) 0 0;
+  display: grid;
+  gap: calc(var(--pas) * 5);
+}
+
+.questions dt {
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: calc(var(--pas) * 2);
+}
+
+.questions dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: var(--largeur-texte);
+}
+
+.tva {
+  border-top: 1px solid var(--ligne);
+  margin-top: calc(var(--pas) * 12);
+  padding-top: calc(var(--pas) * 5);
+  font-size: 0.83rem;
+  color: var(--faint);
+}

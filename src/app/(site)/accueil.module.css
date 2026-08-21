@@ -1,0 +1,171 @@
+/**
+ * Formes propres a l'accueil et aux formulaires publics.
+ * Le partage vit dans site.module.css ; ce qui n'apparait qu'ici reste ici.
+ */
+
+/* --- la preuve de confidentialite, au-dessus de la ligne de flottaison ----- */
+
+.preuve {
+  background: var(--accent-pale);
+  border: 1px solid var(--accent-doux);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 8);
+  margin: calc(var(--pas) * 10) 0 0;
+}
+
+.preuve h2 {
+  margin-bottom: calc(var(--pas) * 4);
+}
+
+.preuve > p:last-child {
+  margin-bottom: 0;
+}
+
+/* --- la confrontation bail / police --------------------------------------- */
+
+.confrontation {
+  display: grid;
+  gap: calc(var(--pas) * 4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  margin: calc(var(--pas) * 6) 0 calc(var(--pas) * 4);
+}
+
+.cote {
+  background: var(--carte);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 5);
+  box-shadow: var(--ombre-fine);
+}
+
+.coteEtiquette {
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: calc(var(--pas) * 4);
+}
+
+.cote :global(.clause) {
+  margin-bottom: calc(var(--pas) * 3);
+}
+
+.coteNote {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--faint);
+}
+
+/* Le verdict porte le rouge de l'ecart : c'est une conclusion, pas un encadre
+   d'ambiance. */
+.verdict {
+  border: 1px solid var(--rouge-ligne);
+  border-left: 3px solid var(--rouge);
+  background: var(--rouge-doux);
+  border-radius: var(--rayon-lg);
+  padding: calc(var(--pas) * 5) calc(var(--pas) * 6);
+}
+
+.verdictEtiquette {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--rouge);
+  margin-bottom: calc(var(--pas) * 3);
+}
+
+.verdictChiffre {
+  font-size: 1.1rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: calc(var(--pas) * 3);
+}
+
+.verdictChiffre strong {
+  color: var(--rouge);
+  font-weight: 700;
+}
+
+.verdict p:last-child {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* --- capture d'email et formulaires publics -------------------------------- */
+
+.capture {
+  border-top: 1px solid var(--ligne);
+  margin-top: calc(var(--pas) * 14);
+  padding-top: calc(var(--pas) * 10);
+}
+
+.formulaire {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: calc(var(--pas) * 4);
+  margin: calc(var(--pas) * 6) 0 calc(var(--pas) * 4);
+}
+
+.champ {
+  display: grid;
+  gap: calc(var(--pas) * 2);
+  flex: 1 1 260px;
+}
+
+.champ label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.champ input,
+.champ select {
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--ligne-forte);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 3);
+  min-height: 42px;
+  width: 100%;
+}
+
+.champ input:focus,
+.champ select:focus {
+  border-color: var(--accent);
+}
+
+.champ input::placeholder {
+  color: var(--faint);
+}
+
+.formulaire button {
+  flex: 0 0 auto;
+  min-height: 42px;
+}
+
+.erreur {
+  color: var(--rouge);
+  background: var(--rouge-doux);
+  border: 1px solid var(--rouge-ligne);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 4);
+  font-size: 0.9rem;
+  max-width: var(--largeur-texte);
+}
+
+.mentionFormulaire {
+  font-size: 0.83rem;
+  color: var(--faint);
+  max-width: 62ch;
+  margin-bottom: 0;
+}
