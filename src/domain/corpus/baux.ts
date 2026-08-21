@@ -172,9 +172,15 @@ Le Preneur répond de tous dommages survenus dans les lieux loués, quelle qu’
 Le Bailleur ne pourra être inquiété à raison des troubles causés par les autres occupants.
 Le Preneur garantit le Bailleur contre toute réclamation de tiers liée à l’exploitation des lieux.
 
-TITRE IV - CLAUSES DIVERSES
+TITRE IV - OBLIGATIONS DU BAILLEUR
 
-4.1 Articulation contractuelle
+4.1 Assurances du Bailleur
+Le Bailleur souscrit et maintient une police garantissant l’immeuble contre l’incendie, l’explosion et les dégâts des eaux.
+Les primes correspondantes sont refacturées au Preneur au titre des charges.
+
+TITRE V - CLAUSES DIVERSES
+
+5.1 Articulation contractuelle
 Les stipulations du bail prévalent sur celles de la police d’assurance.
 Le Preneur renonce à tout recours au titre de tout autre contrat conclu avec le Bailleur.`
 

@@ -1,0 +1,134 @@
+/**
+ * Cohérence interne.
+ *
+ * Une fiche par incohérence, avec les deux clauses côte à côte : c'est la
+ * confrontation qui fait comprendre le défaut, pas la description.
+ */
+
+.chapo {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: calc(var(--pas) * 4);
+}
+
+.liste {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: calc(var(--pas) * 4);
+}
+
+.fiche {
+  border: 1px solid var(--ambre-ligne);
+  border-left: 3px solid var(--ambre);
+  border-radius: var(--rayon);
+  background: var(--ambre-doux);
+  padding: calc(var(--pas) * 4);
+}
+
+.ficheCritique {
+  composes: fiche;
+  border-color: var(--rouge-ligne);
+  border-left-color: var(--rouge);
+  background: var(--rouge-doux);
+}
+
+.tete {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--pas) * 3);
+  margin-bottom: calc(var(--pas) * 4);
+}
+
+.signal {
+  font-size: 1.05rem;
+  line-height: 1.3;
+  flex: none;
+}
+
+.resume {
+  margin: 0 0 2px;
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.titre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(var(--pas) * 2);
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.reference {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+/* Les deux clauses côte à côte : c'est la confrontation qui fait comprendre. */
+.clauses {
+  display: grid;
+  gap: calc(var(--pas) * 3);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  margin-bottom: calc(var(--pas) * 4);
+}
+
+.clause {
+  background: var(--bg);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon);
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 4);
+}
+
+.clauseEtiquette {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--faint);
+  margin-bottom: calc(var(--pas) * 2);
+}
+
+.citation {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.manquante {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.explication {
+  margin: 0 0 calc(var(--pas) * 3);
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+.base {
+  margin: 0 0 calc(var(--pas) * 3);
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+
+.action {
+  margin: 0;
+  padding: calc(var(--pas) * 3) calc(var(--pas) * 4);
+  background: var(--bg);
+  border: 1px solid var(--ligne);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--rayon);
+  font-size: 0.9rem;
+  color: var(--ink);
+}

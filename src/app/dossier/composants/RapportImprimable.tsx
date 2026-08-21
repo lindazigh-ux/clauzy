@@ -30,6 +30,7 @@ import styles from '../rapport.module.css'
  *   2. perimetre et limites — la page qui protege ;
  *   3. synthese autonome ;
  *   3 bis. rapprochement des garanties, risque par risque ;
+ *   3 ter. coherence interne — les clauses qui se contredisent ;
  *   4. preconisations hierarchisees par enjeu chiffre ;
  *   5. matrice complete des controles ;
  *   6. suivi d'attestation.
@@ -44,6 +45,10 @@ const dateLongue = (iso: string): string =>
  * insuffisante » doit se lire « écrivez au courtier », pas « négociez un
  * avenant ».
  */
+/** « Article 12 », ou l'intitulé quand le document ne numérote pas. */
+const reference = (article: string | null, intitule: string | null): string =>
+  article !== null ? `Article ${article}` : (intitule ?? 'Stipulation non numérotée')
+
 const GESTE: Record<NiveauPreuve, string> = {
   [NiveauPreuve.ETABLIE]: 'Point clos.',
   [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]:
@@ -62,6 +67,7 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
   const courriels = dossier.documents.filter((document) => document.courriel !== null)
   const jalons = calendrier(dossier.suivi)
   const rapprochements = dossier.analyse?.rapprochements ?? []
+  const incoherences = dossier.analyse?.incoherences ?? []
   const couleur = `#${dossier.cabinet.couleur}`
 
   /** L'etat porte sa couleur jusque sur le papier. */
@@ -251,6 +257,59 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
               ))}
             </tbody>
           </table>
+        </section>
+      )}
+
+      {/* 3 ter. Cohérence interne — les clauses qui se contredisent. */}
+      {incoherences.length > 0 && (
+        <section className={styles.section}>
+          <h2>Cohérence interne du bail</h2>
+          <p className={styles.discret}>
+            Les stipulations citées ci-dessous ne posent aucun problème prises isolément. C’est leur
+            coexistence qui en pose un : au sinistre, chaque partie invoquera celle des deux qui
+            l’arrange.
+          </p>
+          <ol className={styles.preconisations}>
+            {incoherences.map((incoherence) => (
+              <li key={incoherence.regleId}>
+                <h3>
+                  {incoherence.titre}{' '}
+                  <span className={styles.reference}>{incoherence.regleId}</span>
+                </h3>
+                <p className={styles.chiffre}>{incoherence.resume}</p>
+                <p>
+                  <span className={styles.etiquetteChamp}>
+                    {reference(incoherence.premier.article, incoherence.premier.intitule)}.
+                  </span>
+                </p>
+                <p className={styles.redaction}>« {incoherence.premier.texte} »</p>
+                {incoherence.second === null ? (
+                  <p>
+                    <span className={styles.etiquetteChamp}>Contrepartie attendue.</span>{' '}
+                    Introuvable dans les pièces produites. C’est la moitié manquante, pas une
+                    contradiction.
+                  </p>
+                ) : (
+                  <>
+                    <p>
+                      <span className={styles.etiquetteChamp}>
+                        {reference(incoherence.second.article, incoherence.second.intitule)}.
+                      </span>
+                    </p>
+                    <p className={styles.redaction}>« {incoherence.second.texte} »</p>
+                  </>
+                )}
+                <p>{incoherence.explication}</p>
+                {incoherence.baseJuridique !== undefined && (
+                  <p className={styles.discret}>{incoherence.baseJuridique}</p>
+                )}
+                <p>
+                  <span className={styles.etiquetteChamp}>Ce qu’il faut faire.</span>{' '}
+                  {incoherence.action}
+                </p>
+              </li>
+            ))}
+          </ol>
         </section>
       )}
 

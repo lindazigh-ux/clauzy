@@ -48,6 +48,8 @@ import {
   type AppuiGarantie,
   type Rapprochement,
 } from './rapprochement'
+import { detecterIncoherences } from '../coherence/detection'
+import type { Incoherence } from '../coherence/types'
 import { enMois, extraireValeurs, type ValeurExtraite } from './extracteurs'
 import { segmenter, type Segment } from './segmentation'
 
@@ -94,6 +96,14 @@ export type Analyse = {
   readonly pieceCouvertureFournie: boolean
   /** Le rapprochement risque par risque, independamment des controles. */
   readonly rapprochements: readonly Rapprochement[]
+  /**
+   * Les incoherences internes du document source.
+   *
+   * Elles ne se rattachent a aucun controle : une clause acceptable prise
+   * isolement devient incoherente avec une autre, trois articles plus loin.
+   * C'est la lecture qu'aucun examen ligne a ligne ne fait.
+   */
+  readonly incoherences: readonly Incoherence[]
   readonly dureeMs: number
 }
 
@@ -408,6 +418,10 @@ export function analyser(documents: readonly DocumentAnalyse[]): Analyse {
     attestation: texte('ATTESTATION'),
   })
 
+  // La lecture transversale : elle confronte le document source a lui-meme,
+  // et non a un referentiel. Elle ne depend d'aucun controle.
+  const incoherences = detecterIncoherences(documents)
+
   // Le squelette fixe la longueur du tableau avant toute lecture : c'est la
   // garantie mecanique qu'aucun controle ne peut disparaitre (brief §5.2).
   const resultats: ResultatMoteur[] = squeletteResultats().map((vierge) => {
@@ -468,6 +482,7 @@ export function analyser(documents: readonly DocumentAnalyse[]): Analyse {
     synthese: formulerSynthese(resultats),
     pieceCouvertureFournie,
     rapprochements,
+    incoherences,
     dureeMs: Math.round(performance.now() - depart),
   }
 }

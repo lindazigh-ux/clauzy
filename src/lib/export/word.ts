@@ -288,6 +288,81 @@ const rapprochementGaranties = (d: Docx, dossier: Dossier) => {
 }
 
 // ---------------------------------------------------------------------------
+// 3 ter. Coherence interne — la lecture transversale
+// ---------------------------------------------------------------------------
+
+/**
+ * Les clauses citees ici passeraient sans remarque prises isolement. C'est
+ * leur coexistence qui pose probleme, et c'est ce qu'aucune relecture lineaire
+ * ne voit.
+ *
+ * Le ton reste conditionnel : le rapport signale une incoherence POTENTIELLE
+ * et explique, il ne tranche pas.
+ */
+const coherenceInterne = (d: Docx, dossier: Dossier) => {
+  const incoherences = dossier.analyse?.incoherences ?? []
+  if (incoherences.length === 0) return []
+
+  const reference = (article: string | null, intitule: string | null): string =>
+    article !== null ? `Article ${article}` : (intitule ?? 'Stipulation non numérotée')
+
+  const blocs: InstanceType<Docx['Paragraph']>[] = [titre(d, 'Cohérence interne du bail', 1)]
+  blocs.push(
+    texteSimple(
+      d,
+      'Les stipulations citées ci-dessous ne posent aucun problème prises isolément. C’est leur ' +
+        'coexistence qui en pose un : au sinistre, chaque partie invoquera celle des deux qui ' +
+        'l’arrange.',
+      { gris: true },
+    ),
+  )
+
+  for (const incoherence of incoherences) {
+    blocs.push(titre(d, incoherence.titre, 2))
+    blocs.push(
+      new d.Paragraph({
+        spacing: { after: 120 },
+        children: [
+          new d.TextRun({ text: incoherence.resume, size: 22, bold: true, color: ENCRE }),
+          new d.TextRun({ text: `   ${incoherence.regleId}`, size: 18, color: GRIS }),
+        ],
+      }),
+    )
+
+    blocs.push(
+      texteSimple(d, reference(incoherence.premier.article, incoherence.premier.intitule), {
+        gris: true,
+        petit: true,
+      }),
+    )
+    blocs.push(clause(d, incoherence.premier.texte))
+
+    if (incoherence.second === null) {
+      blocs.push(texteSimple(d, 'Contrepartie attendue', { gris: true, petit: true }))
+      blocs.push(
+        texteSimple(d, 'Introuvable dans les pièces produites. C’est la moitié manquante, pas une contradiction.'),
+      )
+    } else {
+      blocs.push(
+        texteSimple(d, reference(incoherence.second.article, incoherence.second.intitule), {
+          gris: true,
+          petit: true,
+        }),
+      )
+      blocs.push(clause(d, incoherence.second.texte))
+    }
+
+    blocs.push(texteSimple(d, incoherence.explication))
+    if (incoherence.baseJuridique !== undefined) {
+      blocs.push(texteSimple(d, incoherence.baseJuridique, { gris: true, petit: true }))
+    }
+    blocs.push(puce(d, incoherence.action))
+  }
+
+  return blocs
+}
+
+// ---------------------------------------------------------------------------
 // 4. Preconisations, hierarchisees par enjeu chiffre (§7)
 // ---------------------------------------------------------------------------
 
@@ -554,6 +629,7 @@ export async function exporterWord(dossier: Dossier): Promise<RapportWord> {
     ...perimetreEtLimites(d, dossier, lignes),
     ...synthese(d, dossier),
     ...rapprochementGaranties(d, dossier),
+    ...coherenceInterne(d, dossier),
     ...listePreconisations(d, dossier),
     ...matrice(d, lignes),
     ...suiviAttestation(d, dossier),

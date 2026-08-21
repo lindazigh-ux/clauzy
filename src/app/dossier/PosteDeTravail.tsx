@@ -44,6 +44,7 @@ import { LecteurDocument } from './composants/LecteurDocument'
 import { Livrable } from './composants/Livrable'
 import { Matrice, Synthese, type FiltreEtat } from './composants/Matrice'
 import { PanneauObservations, PanneauPerimetre } from './composants/Perimetre'
+import { PanneauCoherence } from './composants/Coherence'
 import { PanneauRapprochement } from './composants/Rapprochement'
 import { RapportImprimable } from './composants/RapportImprimable'
 import { Suivi } from './composants/Suivi'
@@ -302,6 +303,10 @@ export function PosteDeTravail() {
 
           {dossier.analyse !== null && (
             <PanneauRapprochement rapprochements={dossier.analyse.rapprochements} />
+          )}
+
+          {dossier.analyse !== null && (
+            <PanneauCoherence incoherences={dossier.analyse.incoherences} />
           )}
 
           <LecteurDocument
