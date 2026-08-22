@@ -240,3 +240,43 @@ describe('préconisations hiérarchisées par enjeu chiffré (brief §7)', () =>
     expect(liste.some((l) => l.controle.id === 'DAB-05')).toBe(false)
   })
 })
+
+describe('les décisions du praticien survivent à une nouvelle analyse (brief §39)', () => {
+  it('conserve un contrôle écarté, son auteur, sa date et son motif', () => {
+    const avant = ecarter(dossierAnalyse(), 'DAB-05', PRATICIENNE, 'Franchise déjà négociée.')
+    const ajustement = avant.ajustements['DAB-05']
+    expect(ajustement).toBeDefined()
+
+    // Relancer le moteur ne doit rien effacer : c'est la promesse qui rend
+    // l'outil utilisable en cabinet — sans elle, une relance coûte une heure de
+    // reprises manuelles.
+    const apres = enregistrerAnalyse(avant, analyseDeBase())
+
+    expect(apres.ajustements['DAB-05']).toEqual(ajustement)
+    expect(ligne(apres, 'DAB-05').ecarte).toBe(true)
+    expect(ligne(apres, 'DAB-05').motif).toContain('Franchise déjà négociée')
+  })
+
+  it('conserve un statut forcé, et garde trace de l’état que le moteur avait conclu', () => {
+    const initial = dossierAnalyse()
+    const etatMoteur = ligne(initial, 'DAB-01').resultatMoteur?.statut ?? null
+    expect(etatMoteur).not.toBeNull()
+
+    const force = forcerStatut(
+      initial,
+      'DAB-01',
+      PRATICIENNE,
+      Statut.CONFORME,
+      'Avenant signé le 3 mars, vérifié aux conditions particulières.',
+    )
+    const apres = enregistrerAnalyse(force, analyseDeBase())
+
+    expect(ligne(apres, 'DAB-01').statut).toBe(Statut.CONFORME)
+    expect(ligne(apres, 'DAB-01').origine).toBe(Origine.AJUSTEMENT_MANUEL)
+    // L'ancien état reste lisible : sans lui, la trace ne dit pas ce qui a été
+    // décidé, seulement ce qui est affiché.
+    expect(ligne(apres, 'DAB-01').resultatMoteur?.statut).toBe(etatMoteur)
+    expect(apres.ajustements['DAB-01']?.auteur).toBe(PRATICIENNE)
+    expect(apres.ajustements['DAB-01']?.horodatage).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+  })
+})

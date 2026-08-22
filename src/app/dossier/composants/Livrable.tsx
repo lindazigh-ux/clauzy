@@ -1,24 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-
 import type { Cabinet, Dossier, FicheClient } from '@/domain/dossier'
-import { remettreFichier } from '@/lib/telechargement'
 
 import styles from '../dossier.module.css'
 
 /**
- * Le livrable (brief §7).
- *
- * C'est ce que le client achete — a soigner davantage que l'interface.
- *
- * Deux sorties : la note Word ANNOTEE, dont les commentaires sont ancres au
- * passage original du bail, et le PDF client, produit par la fonction
- * d'impression du navigateur. Aucune des deux ne passe par un service de
- * conversion : lire et ecrire un document ne doit dependre d'aucun tiers (§14).
+ * L'identite du livrable (brief §7).
  *
  * L'identite saisie ici est celle du CABINET : le rapport sort a ses couleurs,
  * pas a celles de Clauzy. Elle reste sur le poste, comme le reste du dossier.
+ *
+ * Les DEUX EXPORTS ont quitte ce composant pour l'ecran Rapport : deux boutons
+ * voisins ne disaient pas en quoi les deux livrables different, et le
+ * praticien envoyait au client celui qui porte les traces de detection.
  */
 export type LivrableProps = {
   readonly dossier: Dossier
@@ -27,41 +21,6 @@ export type LivrableProps = {
 }
 
 export function Livrable({ dossier, onCabinet, onClient }: LivrableProps) {
-  const [enCours, setEnCours] = useState(false)
-  const [erreur, setErreur] = useState<string | null>(null)
-  const [dernier, setDernier] = useState<string | null>(null)
-
-  const exporterWord = async () => {
-    setEnCours(true)
-    setErreur(null)
-    try {
-      // `docx` est charge ici, et nulle part ailleurs : il n'a rien a faire
-      // dans le bundle initial (§13).
-      const { exporterWord: construire } = await import('@/lib/export/word')
-      const rapport = await construire(dossier)
-      const remise = await remettreFichier(rapport.nomFichier, rapport.donnees)
-
-      if (remise.etat === 'impossible') {
-        setErreur(remise.message)
-      } else if (remise.etat === 'enregistre') {
-        setDernier(
-          `Note exportée — ${rapport.nombreCommentaires} commentaire${
-            rapport.nombreCommentaires > 1 ? 's' : ''
-          } ancré${rapport.nombreCommentaires > 1 ? 's' : ''} au texte du bail.`,
-        )
-      }
-    } catch (cause) {
-      setErreur(
-        cause instanceof Error
-          ? cause.message
-          : 'La note n’a pas pu être produite. Enregistrez le dossier, rechargez la page et ' +
-            'relancez l’export.',
-      )
-    } finally {
-      setEnCours(false)
-    }
-  }
-
   const champ = (
     id: string,
     libelle: string,
@@ -135,26 +94,6 @@ export function Livrable({ dossier, onCabinet, onClient }: LivrableProps) {
           onClient({ activite }),
         )}
 
-        <div className={styles.rangee}>
-          <button
-            type="button"
-            className={styles.boutonPrimaire}
-            onClick={() => void exporterWord()}
-            disabled={enCours}
-          >
-            {enCours ? 'Préparation…' : 'Exporter la note Word annotée'}
-          </button>
-          <button type="button" className={styles.bouton} onClick={() => window.print()}>
-            Imprimer la note en PDF
-          </button>
-        </div>
-
-        {dernier !== null && <p className={styles.vide}>{dernier}</p>}
-        {erreur !== null && (
-          <p className={styles.erreur} role="alert">
-            {erreur}
-          </p>
-        )}
       </div>
     </section>
   )

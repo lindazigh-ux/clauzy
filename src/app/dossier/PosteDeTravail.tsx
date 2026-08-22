@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { NOMBRE_CONTROLES, type Gravite, type Statut } from '@/domain/controles'
+import { type Gravite, type Statut } from '@/domain/controles'
 import { StatutAffiche } from '@/domain/garanties/axes'
 import {
   ajouterDocument,
@@ -19,17 +19,13 @@ import {
   majPerimetre,
   majReference,
   majSuivi,
-  preconisations,
   rattacher,
   reecrire,
   reprendre,
-  resultatsAffiches,
   retirerDocument,
   retirerObservation,
   synthetiser,
-  type Cabinet,
   type Dossier,
-  type FicheClient,
   type IdJalon,
   type Perimetre,
   type Rattachement,
@@ -38,22 +34,17 @@ import {
 import { lancerAnalyse, lireFichier } from '@/lib/analyse/client'
 import { documentsAnalysables, type DocumentImporte, type RoleDocument } from '@/lib/import'
 
-import styles from './dossier.module.css'
 import atelier from './atelier.module.css'
 import { EcranBail } from './ecrans/EcranBail'
 import { EcranConfrontation } from './ecrans/EcranConfrontation'
+import { EcranContradictions } from './ecrans/EcranContradictions'
+import { EcranControles } from './ecrans/EcranControles'
+import { EcranPieces } from './ecrans/EcranPieces'
+import { EcranRapport } from './ecrans/EcranRapport'
 import { EcranSynthese, aTraiter } from './ecrans/EcranSynthese'
 import { LIBELLE_SECTION, Rail, type Section } from './ecrans/Rail'
-import { EditeurLigne } from './composants/EditeurLigne'
-import { LecteurDocument } from './composants/LecteurDocument'
-import { Livrable } from './composants/Livrable'
-import { Matrice, Synthese, type FiltreEtat } from './composants/Matrice'
-import { PanneauObservations, PanneauPerimetre } from './composants/Perimetre'
-import { PanneauCoherence } from './composants/Coherence'
+import { type FiltreEtat } from './composants/Matrice'
 import { RapportImprimable } from './composants/RapportImprimable'
-import { Suivi } from './composants/Suivi'
-import { Sauvegarde } from './composants/Sauvegarde'
-import { ZoneImport } from './composants/ZoneImport'
 
 /**
  * Poste de travail (brief §6).
@@ -107,15 +98,7 @@ export function PosteDeTravail() {
     return () => window.removeEventListener('beforeunload', prevenir)
   }, [travailNonEnregistre])
 
-  const lignes = useMemo(() => resultatsAffiches(dossier), [dossier])
   const synthese = useMemo(() => synthetiser(dossier), [dossier])
-  // Les enjeux chiffres remontent en tete : un directeur immobilier reagit a un
-  // euro, pas a « gravite 3 » (§7).
-  const enjeux = useMemo(
-    () => preconisations(dossier).filter((ligne) => ligne.resumeEcart !== null),
-    [dossier],
-  )
-  const ligneActive = lignes.find((l) => l.controle.id === selection) ?? null
 
   /** Enveloppe les gestes qui peuvent refuser : le motif manquant remonte a l'ecran. */
   const tenter = useCallback((geste: () => Dossier) => {
@@ -264,7 +247,12 @@ export function PosteDeTravail() {
           reference={dossier.reference}
           expert={expert}
           onSection={setSection}
-          onExpert={setExpert}
+          onExpert={(actif) => {
+            setExpert(actif)
+            // Sortir du mode expert en etant SUR l'ecran expert laisserait une
+            // page blanche : on revient a la synthese.
+            if (!actif && section === 'CONTROLES') setSection('SYNTHESE')
+          }}
         />
 
         <main className={atelier.scene}>
@@ -273,10 +261,12 @@ export function PosteDeTravail() {
               <h1 className={atelier.titreEcran}>{LIBELLE_SECTION[section]}</h1>
               {/*
                 « 45 contrôles appliqués — 16 écarts, 3 conformes… » décrit
-                l'outil, pas le dossier (§43). Elle reste dans le rapport, où
-                elle prouve l'étendue du travail, et en mode expert. Pas ici.
+                l'outil, pas le dossier (§43). Elle a sa place sur l'écran des
+                contrôles, qui parle de l'outil, et dans le rapport, qui prouve
+                l'étendue du travail. Nulle part ailleurs — pas même en mode
+                expert sur la synthèse.
               */}
-              {expert && dossier.analyse !== null && (
+              {section === 'CONTROLES' && dossier.analyse !== null && (
                 <p className={atelier.sousTitre}>{synthese.phrase}</p>
               )}
             </div>
@@ -316,147 +306,85 @@ export function PosteDeTravail() {
             <EcranConfrontation dossier={dossier} onPieces={() => setSection('PIECES')} />
           )}
 
-          {/*
-            Trois écrans attendent encore leur refonte (phase 2 du §17-39). Ils
-            portent les composants existants tels quels : le produit reste
-            entier, et la refonte n'a pas à tout casser d'un coup.
-          */}
-          {section === 'CONTRADICTIONS' && (
-            <div className={atelier.heritage}>
-              <PanneauCoherence incoherences={dossier.analyse?.incoherences ?? []} />
-            </div>
-          )}
+          {section === 'CONTRADICTIONS' && <EcranContradictions dossier={dossier} />}
 
           {section === 'PIECES' && (
-            <div className={atelier.heritage}>
-              <ZoneImport
-                documents={dossier.documents}
-                enCours={lectureEnCours}
-                erreurs={erreursImport}
-                onImporter={(fichiers, role) => void importer(fichiers, role)}
-                onRetirer={(id) => setDossier((courant) => retirerDocument(courant, id))}
-              />
-              <Sauvegarde
-                dossier={dossier}
-                enregistreLe={enregistreLe}
-                onEnregistre={() => setEnregistreLe(new Date().toISOString())}
-                onCharger={(charge) => {
-                  setDossier(charge)
-                  setEnregistreLe(charge.majLe)
-                  setSelection(null)
-                  setErreurEdition(null)
-                }}
-              />
-              <LecteurDocument
-                documents={dossier.documents}
-                controleSuggere={selection}
-                onRattacher={(controleId: string, rattachement: Rattachement) =>
-                  tenter(() => rattacher(dossier, controleId, AUTEUR_PAR_DEFAUT, rattachement))
-                }
-              />
-            </div>
+            <EcranPieces
+              dossier={dossier}
+              lectureEnCours={lectureEnCours}
+              erreursImport={erreursImport}
+              enregistreLe={enregistreLe}
+              onImporter={(fichiers, role) => void importer(fichiers, role)}
+              onRetirer={(id) => setDossier((courant) => retirerDocument(courant, id))}
+              onEnregistre={() => setEnregistreLe(new Date().toISOString())}
+              onCharger={(charge) => {
+                setDossier(charge)
+                setEnregistreLe(charge.majLe)
+                setSelection(null)
+                setErreurEdition(null)
+              }}
+            />
           )}
 
           {section === 'RAPPORT' && (
-            <div className={atelier.heritage}>
-              <Livrable
-                dossier={dossier}
-                onCabinet={(cabinet: Cabinet | Partial<Cabinet>) =>
-                  setDossier((courant) => majCabinet(courant, cabinet))
-                }
-                onClient={(client: Partial<FicheClient>) =>
-                  setDossier((courant) => majClient(courant, client))
-                }
-              />
-              <PanneauPerimetre
-                perimetre={dossier.perimetre}
-                onChanger={(modifications: Partial<Perimetre>) =>
-                  setDossier((courant) => majPerimetre(courant, modifications))
-                }
-              />
-              <PanneauObservations
-                observations={dossier.observations}
-                onAjouter={(observation) =>
-                  setDossier((courant) => ajouterObservation(courant, observation))
-                }
-                onRetirer={(id) => setDossier((courant) => retirerObservation(courant, id))}
-              />
-              <Suivi
-                dossier={dossier}
-                onSuivi={(suivi: Partial<SuiviDossier>) =>
-                  setDossier((courant) => majSuivi(courant, suivi))
-                }
-                onBasculer={(jalon: IdJalon) =>
-                  setDossier((courant) => basculerJalon(courant, jalon))
-                }
-              />
-            </div>
+            <EcranRapport
+              dossier={dossier}
+              onCabinet={(cabinet) => setDossier((courant) => majCabinet(courant, cabinet))}
+              onClient={(client) => setDossier((courant) => majClient(courant, client))}
+              onPerimetre={(modifications: Partial<Perimetre>) =>
+                setDossier((courant) => majPerimetre(courant, modifications))
+              }
+              onObservation={(observation) =>
+                setDossier((courant) => ajouterObservation(courant, observation))
+              }
+              onRetirerObservation={(id) =>
+                setDossier((courant) => retirerObservation(courant, id))
+              }
+              onSuivi={(suivi: Partial<SuiviDossier>) =>
+                setDossier((courant) => majSuivi(courant, suivi))
+              }
+              onBasculerJalon={(jalon: IdJalon) =>
+                setDossier((courant) => basculerJalon(courant, jalon))
+              }
+            />
           )}
 
           {/*
-            Le mode expert n'est pas un septième écran : il AJOUTE au bas de
-            celui qu'on regarde ce que le moteur a produit, ligne par ligne, et
-            de quoi le reprendre à la main. Le praticien reste décisionnaire
-            (§39) — mais il ne travaille plus dans la matrice.
+            La matrice, les identifiants et les traces vivent dans la septieme
+            section, qui n'existe qu'en mode expert (§39). Rien n'est supprime :
+            le praticien garde chaque geste, il n'est plus oblige de traverser
+            quarante-cinq lignes pour travailler sur les cinq qui comptent.
           */}
-          {expert && (
-            <div className={atelier.heritage}>
-              <hr />
-              {dossier.analyse === null && (
-                <p className={styles.avertissement}>
-                  Aucune analyse n’a encore tourné. Les {NOMBRE_CONTROLES} contrôles sont affichés
-                  « à vérifier manuellement » — c’est l’état exact du dossier, pas une absence de
-                  résultat.
-                </p>
-              )}
-              <Synthese synthese={synthese} enjeux={enjeux} filtre={filtre} onFiltrer={setFiltre} />
-              <Matrice
-                lignes={lignes}
-                filtre={filtre}
-                selection={selection}
-                onSelectionner={(id) => setSelection(id === selection ? null : id)}
-              />
-              {ligneActive !== null && (
-                <EditeurLigne
-                  key={ligneActive.controle.id}
-                  ligne={ligneActive}
-                  erreur={erreurEdition}
-                  onReecrire={(champs) =>
-                    tenter(() =>
-                      reecrire(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, champs),
-                    )
-                  }
-                  onGravite={(gravite: Gravite) =>
-                    tenter(() =>
-                      forcerGravite(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, gravite),
-                    )
-                  }
-                  onEcarter={(motif) =>
-                    tenter(() => ecarter(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, motif))
-                  }
-                  onReprendre={() =>
-                    tenter(() => reprendre(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT))
-                  }
-                  onForcerStatut={(statut: Statut, motif: string) =>
-                    tenter(() =>
-                      forcerStatut(
-                        dossier,
-                        ligneActive.controle.id,
-                        AUTEUR_PAR_DEFAUT,
-                        statut,
-                        motif,
-                      ),
-                    )
-                  }
-                  onDetacher={(index) =>
-                    tenter(() =>
-                      detacher(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, index),
-                    )
-                  }
-                />
-              )}
-            </div>
+          {section === 'CONTROLES' && (
+            <EcranControles
+              dossier={dossier}
+              filtre={filtre}
+              selection={selection}
+              erreur={erreurEdition}
+              onFiltrer={setFiltre}
+              onSelectionner={(id) => setSelection(id === selection ? null : id)}
+              onReecrire={(id, champs) =>
+                tenter(() => reecrire(dossier, id, AUTEUR_PAR_DEFAUT, champs))
+              }
+              onGravite={(id, gravite: Gravite) =>
+                tenter(() => forcerGravite(dossier, id, AUTEUR_PAR_DEFAUT, gravite))
+              }
+              onEcarter={(id, motif) =>
+                tenter(() => ecarter(dossier, id, AUTEUR_PAR_DEFAUT, motif))
+              }
+              onReprendre={(id) => tenter(() => reprendre(dossier, id, AUTEUR_PAR_DEFAUT))}
+              onForcerStatut={(id, statut: Statut, motif) =>
+                tenter(() => forcerStatut(dossier, id, AUTEUR_PAR_DEFAUT, statut, motif))
+              }
+              onDetacher={(id, index) =>
+                tenter(() => detacher(dossier, id, AUTEUR_PAR_DEFAUT, index))
+              }
+              onRattacher={(controleId: string, rattachement: Rattachement) =>
+                tenter(() => rattacher(dossier, controleId, AUTEUR_PAR_DEFAUT, rattachement))
+              }
+            />
           )}
+
         </main>
       </div>
 

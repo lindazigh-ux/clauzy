@@ -23,7 +23,16 @@ export const SECTIONS = [
   'RAPPORT',
 ] as const
 
-export type Section = (typeof SECTIONS)[number]
+/**
+ * La septieme section n'apparait qu'en mode expert.
+ *
+ * Elle porte la matrice des quarante-cinq controles, les identifiants et les
+ * traces. Elle n'a pas sa place dans le chemin normal : « le moteur gere 45
+ * controles ; le courtier ne doit jamais avoir l'impression d'en gerer 45 ».
+ */
+export const SECTION_EXPERTE = 'CONTROLES' as const
+
+export type Section = (typeof SECTIONS)[number] | typeof SECTION_EXPERTE
 
 export const LIBELLE_SECTION: Record<Section, string> = {
   SYNTHESE: 'Synthèse',
@@ -32,6 +41,7 @@ export const LIBELLE_SECTION: Record<Section, string> = {
   CONTRADICTIONS: 'Contradictions',
   PIECES: 'Pièces',
   RAPPORT: 'Rapport',
+  CONTROLES: 'Contrôles',
 }
 
 export function Rail({
@@ -68,7 +78,7 @@ export function Rail({
       </div>
 
       <ul className={styles.sections}>
-        {SECTIONS.map((section) => {
+        {[...SECTIONS, ...(expert ? [SECTION_EXPERTE] : [])].map((section) => {
           const compteur = compteurs[section]
           return (
             <li key={section}>

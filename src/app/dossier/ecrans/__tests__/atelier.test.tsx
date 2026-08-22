@@ -7,6 +7,8 @@
  * deux comptes diverger sur le même écran, et ne pas surligner à côté de la
  * clause.
  */
+import { readFileSync } from 'node:fs'
+
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
@@ -16,9 +18,14 @@ import { NiveauPreuve } from '@/domain/garanties/types'
 import { recit } from '@/domain/dossier'
 import { dossierDeReference } from '@/domain/rapport/__tests__/fixture'
 
+import { VUES } from '@/domain/rapport/vues'
+
 import { EcranBail } from '../EcranBail'
 import { EcranConfrontation } from '../EcranConfrontation'
+import { EcranContradictions } from '../EcranContradictions'
+import { EcranRapport } from '../EcranRapport'
 import { EcranSynthese, aTraiter } from '../EcranSynthese'
+import { LIBELLE_SECTION, Rail, SECTIONS } from '../Rail'
 
 const dossier = dossierDeReference()
 const rapprochements = dossier.analyse?.rapprochements ?? []
@@ -147,5 +154,90 @@ describe('la confrontation montre la chaîne entière', () => {
       if (rapprochement.chiffrage === null) continue
       expect(rendu).toContain(texteDe(rapprochement.chiffrage))
     }
+  })
+})
+
+describe('les contradictions ne se résolvent jamais en silence', () => {
+  it('portent les deux extraits, le pourquoi et l’action', () => {
+    const incoherences = dossier.analyse?.incoherences ?? []
+    expect(incoherences.length, 'le dossier de référence n’en porte aucune').toBeGreaterThan(0)
+
+    const rendu = texteDe(renderToStaticMarkup(<EcranContradictions dossier={dossier} />))
+    for (const incoherence of incoherences) {
+      // §10 : clause A, clause B, pourquoi, action. Aucune ne peut manquer.
+      expect(rendu).toContain(texteDe(incoherence.premier.texte).trim())
+      if (incoherence.second !== null) {
+        expect(rendu).toContain(texteDe(incoherence.second.texte).trim())
+      }
+      expect(rendu).toContain(texteDe(incoherence.explication).trim())
+      expect(rendu).toContain(texteDe(incoherence.action).trim())
+    }
+  })
+})
+
+describe('la septième section n’existe qu’en mode expert', () => {
+  const railDe = (expert: boolean) =>
+    texteDe(
+      renderToStaticMarkup(
+        <Rail
+          active="SYNTHESE"
+          compteurs={{}}
+          client="ATELIER NORD"
+          reference="D-2026-014"
+          expert={expert}
+          onSection={rien}
+          onExpert={rien}
+        />,
+      ),
+    )
+
+  it('ne propose pas « Contrôles » dans le chemin normal', () => {
+    expect(railDe(false)).not.toContain(LIBELLE_SECTION.CONTROLES)
+    for (const section of SECTIONS) expect(railDe(false)).toContain(LIBELLE_SECTION[section])
+  })
+
+  it('la propose dès que le mode expert est actif', () => {
+    expect(railDe(true)).toContain(LIBELLE_SECTION.CONTROLES)
+  })
+})
+
+describe('les deux livrables se distinguent', () => {
+  it('l’écran Rapport dit ce que chacun porte, et ce que la note client écarte', () => {
+    const rendu = texteDe(
+      renderToStaticMarkup(
+        <EcranRapport
+          dossier={dossier}
+          onCabinet={rien}
+          onClient={rien}
+          onPerimetre={rien}
+          onObservation={rien}
+          onRetirerObservation={rien}
+          onSuivi={rien}
+          onBasculerJalon={rien}
+        />,
+      ),
+    )
+    expect(rendu).toContain(VUES.COURTIER.libelle)
+    expect(rendu).toContain(VUES.CLIENT.libelle)
+    // Ce que la note client laisse de côté est écrit : c'est ce qui empêche
+    // d'envoyer au client le document qui porte les traces de détection.
+    for (const ecarte of VUES.CLIENT.ecarte) {
+      expect(rendu.toLocaleLowerCase('fr')).toContain(texteDe(ecarte).trim().toLocaleLowerCase('fr'))
+    }
+  })
+})
+
+describe('le mode expert ne rouvre pas la porte au décompte', () => {
+  it('la synthèse reste muette sur le nombre de contrôles, expert ou non', () => {
+    // La bascule révèle un ÉCRAN, elle ne réécrit pas les autres. Sans cette
+    // garantie, « mode expert » redeviendrait « tout afficher partout ».
+    const source = readFileSync(
+      new URL('../../PosteDeTravail.tsx', import.meta.url),
+      'utf8',
+    )
+    const rendu = source.slice(source.indexOf('<h1 className={atelier.titreEcran}>'))
+    const condition = rendu.slice(0, rendu.indexOf('</div>'))
+    expect(condition).toContain("section === 'CONTROLES'")
+    expect(condition).not.toMatch(/\{expert && dossier\.analyse !== null/)
   })
 })

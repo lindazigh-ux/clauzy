@@ -18,7 +18,6 @@ export type ZoneImportProps = {
   readonly enCours: boolean
   readonly erreurs: readonly string[]
   readonly onImporter: (fichiers: readonly File[], role: RoleDocument) => void
-  readonly onRetirer: (documentId: string) => void
 }
 
 /**
@@ -32,17 +31,11 @@ const LIBELLE_ROLE: Record<RoleDocument, string> = {
   ATTESTATION: 'Attestation d’assurance ou courriel',
 }
 
-const poids = (octets: number): string =>
-  octets < 1024 * 1024
-    ? `${Math.max(1, Math.round(octets / 1024))} Ko`
-    : `${(octets / (1024 * 1024)).toFixed(1)} Mo`
-
 export function ZoneImport({
   documents,
   enCours,
   erreurs,
   onImporter,
-  onRetirer,
 }: ZoneImportProps) {
   const [role, setRole] = useState<RoleDocument>('OBLIGATION')
   const [survol, setSurvol] = useState(false)
@@ -124,37 +117,11 @@ export function ZoneImport({
         </p>
       ))}
 
-      {documents.length > 0 && (
-        <ul className={styles.listeDocuments}>
-          {documents.map((document) => (
-            <li key={document.id} className={styles.document}>
-              <span className={styles.documentNom}>
-                {document.nom}
-                <span className={styles.documentMeta}>
-                  {' '}
-                  · {LIBELLE_ROLE[document.role]} · {poids(document.taille)}
-                  {document.pages === null ? '' : ` · ${document.pages} page${document.pages > 1 ? 's' : ''}`}
-                  {document.piecesJointes.length > 0
-                    ? ` · ${document.piecesJointes.length} pièce${document.piecesJointes.length > 1 ? 's' : ''} jointe${document.piecesJointes.length > 1 ? 's' : ''}`
-                    : ''}
-                </span>
-              </span>
-              <button
-                type="button"
-                className={styles.boutonDiscret}
-                onClick={() => onRetirer(document.id)}
-              >
-                Retirer du dossier
-              </button>
-              {document.avertissements.map((avertissement) => (
-                <p key={avertissement} className={styles.avertissement} style={{ flexBasis: '100%' }}>
-                  {avertissement}
-                </p>
-              ))}
-            </li>
-          ))}
-        </ul>
-      )}
+      {/*
+        La LISTE des pièces appartient à l'écran, pas à la zone de dépôt : les
+        deux la rendaient, et le praticien voyait ses trois fichiers deux fois.
+        Ici, on ne fait qu'entrer des documents.
+      */}
     </section>
   )
 }
