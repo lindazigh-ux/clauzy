@@ -1,6 +1,11 @@
 'use client'
 
 import { LIBELLE_STATUT, Statut } from '@/domain/controles'
+import {
+  LIBELLE_GRAVITE,
+  LIBELLE_STATUT_AFFICHE,
+  StatutAffiche,
+} from '@/domain/garanties/axes'
 import { Beneficiaire, LIBELLE_BENEFICIAIRE } from '@/domain/garanties/types'
 import { LIBELLE_PREUVE } from '@/domain/moteur/rapprochement'
 import {
@@ -60,6 +65,19 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
   const rapprochements = dossier.analyse?.rapprochements ?? []
   const incoherences = dossier.analyse?.incoherences ?? []
   const couleur = `#${dossier.cabinet.couleur}`
+
+  /**
+   * Le badge du rapprochement porte sa couleur jusque sur le papier, avec les
+   * memes correspondances qu'a l'ecran.
+   */
+  const classeStatut = (statut: StatutAffiche): string => {
+    if (statut === StatutAffiche.CRITIQUE) return styles.etatEcart ?? ''
+    if (statut === StatutAffiche.CONFORME) return styles.etatConforme ?? ''
+    if (statut === StatutAffiche.A_VERIFIER || statut === StatutAffiche.A_NEGOCIER) {
+      return styles.etatVerifier ?? ''
+    }
+    return styles.etatAbsent ?? ''
+  }
 
   /** L'etat porte sa couleur jusque sur le papier. */
   const classeEtat = (ligne: LigneRapport): string => {
@@ -229,7 +247,8 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
               <tr>
                 <th scope="col">Garantie</th>
                 <th scope="col">Protège</th>
-                <th scope="col">Preuve</th>
+                <th scope="col">Statut</th>
+                <th scope="col">Preuve et gravité</th>
                 <th scope="col">Ce que cela appelle</th>
               </tr>
             </thead>
@@ -242,8 +261,15 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
                       ? '—'
                       : LIBELLE_BENEFICIAIRE[rapprochement.beneficiaire]}
                   </td>
+                  <td className={classeStatut(rapprochement.statut)}>
+                    {LIBELLE_STATUT_AFFICHE[rapprochement.statut]}
+                  </td>
                   <td>
                     {LIBELLE_PREUVE[rapprochement.niveau]}
+                    <br />
+                    <span className={styles.discret}>
+                      Gravité : {LIBELLE_GRAVITE[rapprochement.gravite].toLowerCase()}
+                    </span>
                     {rapprochement.chiffrage !== null && (
                       <>
                         <br />
@@ -251,7 +277,7 @@ export function RapportImprimable({ dossier }: { readonly dossier: Dossier }) {
                       </>
                     )}
                   </td>
-                  <td>{rapprochement.action}</td>
+                  <td>{rapprochement.recommandation.phrase}</td>
                 </tr>
               ))}
             </tbody>

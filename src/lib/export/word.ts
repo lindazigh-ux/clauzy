@@ -14,7 +14,14 @@
  */
 import { LIBELLE_STATUT, NOMBRE_CONTROLES } from '@/domain/controles'
 import { Beneficiaire, LIBELLE_BENEFICIAIRE } from '@/domain/garanties/types'
-import { LIBELLE_PREUVE, NiveauPreuve } from '@/domain/moteur/rapprochement'
+import {
+  INTERLOCUTEUR,
+  LIBELLE_ACTION,
+  LIBELLE_GRAVITE,
+  LIBELLE_STATUT_AFFICHE,
+  StatutAffiche,
+} from '@/domain/garanties/axes'
+import { LIBELLE_PREUVE } from '@/domain/moteur/rapprochement'
 import {
   MENTION_LIMITE,
   calendrier,
@@ -33,6 +40,22 @@ const GRIS = '696A74'
 const ENCRE = '15151A'
 /** Le vert de conformite. Distinct de la couleur du cabinet, qui varie. */
 const ACCENT = '0E6B4A'
+const ROUGE = 'B3323F'
+const ARDOISE = '476C8C'
+
+/**
+ * La couleur du badge de synthese, alignee sur celle de l'ecran (brief §8).
+ *
+ * Meme correspondance des deux cotes : un rapport imprime qui peindrait un
+ * point autrement que le poste de travail ferait douter du poste de travail.
+ */
+const COULEUR_STATUT: Record<StatutAffiche, string> = {
+  [StatutAffiche.CONFORME]: ACCENT,
+  [StatutAffiche.A_VERIFIER]: '96650F',
+  [StatutAffiche.A_NEGOCIER]: ARDOISE,
+  [StatutAffiche.CRITIQUE]: ROUGE,
+  [StatutAffiche.INFORMATION]: GRIS,
+}
 
 const dateLongue = (iso: string): string =>
   new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -245,11 +268,21 @@ const rapprochementGaranties = (d: Docx, dossier: Dossier) => {
       new d.Paragraph({
         spacing: { after: 60 },
         children: [
+          // Le badge resume les trois axes ; les deux lignes suivantes les
+          // redonnent un a un, faute de quoi le rapport perdrait de quoi se
+          // justifier (§8).
           new d.TextRun({
-            text: LIBELLE_PREUVE[rapprochement.niveau].toUpperCase(),
+            text: LIBELLE_STATUT_AFFICHE[rapprochement.statut].toUpperCase(),
             size: 18,
             bold: true,
-            color: rapprochement.niveau === NiveauPreuve.ETABLIE ? ACCENT : ENCRE,
+            color: COULEUR_STATUT[rapprochement.statut],
+          }),
+          new d.TextRun({
+            text: `   ${LIBELLE_PREUVE[rapprochement.niveau]} · gravité ${LIBELLE_GRAVITE[
+              rapprochement.gravite
+            ].toLowerCase()}`,
+            size: 18,
+            color: GRIS,
           }),
           ...(rapprochement.beneficiaire === Beneficiaire.MIXTE
             ? []
@@ -275,7 +308,15 @@ const rapprochementGaranties = (d: Docx, dossier: Dossier) => {
     if (rapprochement.chiffrage !== null) {
       blocs.push(texteSimple(d, `Comparaison : ${rapprochement.chiffrage}.`))
     }
-    blocs.push(puce(d, rapprochement.action))
+    const interlocuteur = INTERLOCUTEUR[rapprochement.recommandation.action]
+    blocs.push(
+      puce(
+        d,
+        `${LIBELLE_ACTION[rapprochement.recommandation.action]}` +
+          `${interlocuteur === null ? '' : ` · ${interlocuteur}`}` +
+          ` — ${rapprochement.recommandation.phrase}`,
+      ),
+    )
   }
 
   return blocs

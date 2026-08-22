@@ -55,7 +55,9 @@ describe.each(DOSSIERS_AUDIT.map((cas) => [`${cas.id} — ${cas.intitule}`, cas]
 
       if (attendu.actionContient !== undefined) {
         it(`${attendu.garantieId} — la recommandation correspond à la nature du problème`, () => {
-          expect(trouvees.get(attendu.garantieId)?.action ?? '').toContain(attendu.actionContient)
+          expect(trouvees.get(attendu.garantieId)?.recommandation.phrase ?? '').toContain(
+            attendu.actionContient,
+          )
         })
       }
     }

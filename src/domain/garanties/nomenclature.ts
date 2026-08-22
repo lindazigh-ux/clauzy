@@ -1,3 +1,4 @@
+import { Action } from './axes'
 import { Beneficiaire, Categorie, NiveauPreuve, type Garantie } from './types'
 
 /**
@@ -75,8 +76,11 @@ export const NOMENCLATURE: readonly Garantie[] = [
       },
     ],
     actions: {
-      [NiveauPreuve.ECART_CONFIRME]:
-        'Faire confirmer la ligne « risques locatifs » ou « responsabilité civile occupant » du tableau de garanties. Ce n’est pas une extension à négocier : c’est la garantie de base d’une police de locataire, et son absence signale une police mal souscrite plutôt qu’un manque à acheter.',
+      [NiveauPreuve.ECART_CONFIRME]: {
+        action: Action.ADAPTER_CONTRAT,
+        phrase:
+          'Faire confirmer la ligne « risques locatifs » ou « responsabilité civile occupant » du tableau de garanties. Ce n’est pas une extension à négocier : c’est la garantie de base d’une police de locataire, et son absence signale une police mal souscrite plutôt qu’un manque à acheter.',
+      },
     },
     satisfaitePar: ['RC_OCCUPANT'],
   },
@@ -235,10 +239,16 @@ export const NOMENCLATURE: readonly Garantie[] = [
       // Ne JAMAIS proposer de souscrire : ce serait faire financer par le
       // preneur l'assurance d'un bien qui ne lui appartient pas. L'écart se
       // corrige en retirant l'obligation, pas en l'exécutant.
-      [NiveauPreuve.ECART_CONFIRME]:
-        'Retirer de l’obligation du preneur la structure, les façades, la toiture et le clos et le couvert, qui appartiennent au bailleur. Ne pas chiffrer d’extension : souscrire reviendrait à lui faire financer l’assurance d’un bien dont il n’est pas propriétaire.',
-      [NiveauPreuve.NON_DEMONTREE]:
-        'Vérifier auprès du bailleur qui assure l’immeuble. La réponse tranche la clause plus sûrement que sa rédaction.',
+      [NiveauPreuve.ECART_CONFIRME]: {
+        action: Action.NEGOCIER_CLAUSE,
+        phrase:
+          'Retirer de l’obligation du preneur la structure, les façades, la toiture et le clos et le couvert, qui appartiennent au bailleur. Ne pas chiffrer d’extension : souscrire reviendrait à lui faire financer l’assurance d’un bien dont il n’est pas propriétaire.',
+      },
+      [NiveauPreuve.NON_DEMONTREE]: {
+        action: Action.VERIFIER,
+        phrase:
+          'Vérifier auprès du bailleur qui assure l’immeuble. La réponse tranche la clause plus sûrement que sa rédaction.',
+      },
     },
   },
   {
@@ -509,8 +519,11 @@ export const NOMENCLATURE: readonly Garantie[] = [
       },
     ],
     actions: {
-      [NiveauPreuve.ECART_CONFIRME]:
-        'Obtenir des conditions particulières portant expressément la renonciation à recours de l’assureur, et vérifier qu’elle couvre le même périmètre de dommages que la clause du bail. Aucune prime ne remplace cet écrit : c’est un accord, pas une garantie.',
+      [NiveauPreuve.ECART_CONFIRME]: {
+        action: Action.OBTENIR_ACCORD_ASSUREUR,
+        phrase:
+          'Obtenir des conditions particulières portant expressément la renonciation à recours de l’assureur, et vérifier qu’elle couvre le même périmètre de dommages que la clause du bail. Aucune prime ne remplace cet écrit : c’est un accord, pas une garantie.',
+      },
     },
   },
   {

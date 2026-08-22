@@ -2,9 +2,16 @@
 
 import { useState } from 'react'
 
+import {
+  INTERLOCUTEUR,
+  LIBELLE_ACTION,
+  LIBELLE_GRAVITE,
+  LIBELLE_STATUT_AFFICHE,
+  StatutAffiche,
+} from '@/domain/garanties/axes'
 import { garantie } from '@/domain/garanties/nomenclature'
 import { Beneficiaire, LIBELLE_BENEFICIAIRE } from '@/domain/garanties/types'
-import { LIBELLE_PREUVE, NiveauPreuve, type Rapprochement } from '@/domain/moteur/rapprochement'
+import { LIBELLE_PREUVE, type Rapprochement } from '@/domain/moteur/rapprochement'
 
 import styles from '../dossier.module.css'
 import propres from './rapprochement.module.css'
@@ -22,12 +29,21 @@ import propres from './rapprochement.module.css'
  * praticien doit pouvoir CONTROLER la conclusion, pas la croire.
  */
 
-const CLASSE_NIVEAU: Record<NiveauPreuve, string> = {
-  [NiveauPreuve.ETABLIE]: 'etablie',
-  [NiveauPreuve.JUSTIFICATION_INSUFFISANTE]: 'justification',
-  [NiveauPreuve.PROBABLE]: 'probable',
-  [NiveauPreuve.NON_DEMONTREE]: 'nonDemontree',
-  [NiveauPreuve.ECART_CONFIRME]: 'ecart',
+/**
+ * La couleur du badge de synthese (brief §8).
+ *
+ * Le brief propose 🟡 pour « à négocier » et 🔵 pour « information ». Un jaune
+ * lisible sur blanc est indistinguable de l'ambre déjà pris par « à vérifier » :
+ * la négociation prend donc l'ardoise, et l'information le gris neutre, qui dit
+ * mieux « rien à faire aujourd'hui ». C'est un choix d'affichage, et §8 laisse
+ * l'interface libre de sa synthèse tant qu'elle ne remplace pas les trois axes.
+ */
+const CLASSE_STATUT: Record<StatutAffiche, string> = {
+  [StatutAffiche.CONFORME]: 'conforme',
+  [StatutAffiche.A_VERIFIER]: 'aVerifier',
+  [StatutAffiche.A_NEGOCIER]: 'aNegocier',
+  [StatutAffiche.CRITIQUE]: 'critique',
+  [StatutAffiche.INFORMATION]: 'information',
 }
 
 export function PanneauRapprochement({
@@ -79,9 +95,9 @@ export function PanneauRapprochement({
                   )}
                 </span>
                 <span
-                  className={`${propres.niveau} ${propres[CLASSE_NIVEAU[rapprochement.niveau]]}`}
+                  className={`${propres.statut} ${propres[CLASSE_STATUT[rapprochement.statut]]}`}
                 >
-                  {LIBELLE_PREUVE[rapprochement.niveau]}
+                  {LIBELLE_STATUT_AFFICHE[rapprochement.statut]}
                 </span>
               </button>
 
@@ -90,6 +106,13 @@ export function PanneauRapprochement({
                   <p className={propres.conclusion}>{rapprochement.conclusion}</p>
 
                   <dl className={propres.trace}>
+                    {/* Le badge resume trois axes ; ils restent lisibles un a un. */}
+                    <dt>Niveau de preuve</dt>
+                    <dd>{LIBELLE_PREUVE[rapprochement.niveau]}</dd>
+
+                    <dt>Gravité métier</dt>
+                    <dd>{LIBELLE_GRAVITE[rapprochement.gravite]}</dd>
+
                     <dt>Exigence lue dans le bail</dt>
                     <dd className={propres.citation}>
                       « {rapprochement.exigence?.stipulation.texte ?? '—'} »
@@ -152,7 +175,18 @@ export function PanneauRapprochement({
                     )}
                   </dl>
 
-                  <p className={propres.action}>{rapprochement.action}</p>
+                  <p className={propres.action}>
+                    <span className={propres.geste}>
+                      {LIBELLE_ACTION[rapprochement.recommandation.action]}
+                      {INTERLOCUTEUR[rapprochement.recommandation.action] !== null && (
+                        <span className={propres.aupresDe}>
+                          {' '}
+                          · {INTERLOCUTEUR[rapprochement.recommandation.action]}
+                        </span>
+                      )}
+                    </span>
+                    {rapprochement.recommandation.phrase}
+                  </p>
                 </div>
               )}
             </li>

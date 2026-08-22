@@ -12,6 +12,7 @@
  * Un test de parité vérifie ensuite que les deux le portent réellement.
  */
 import { NOMBRE_CONTROLES } from '../controles'
+import { LIBELLE_GRAVITE, LIBELLE_STATUT_AFFICHE } from '../garanties/axes'
 import { LIBELLE_PREUVE } from '../garanties/types'
 import {
   MENTION_LIMITE,
@@ -55,7 +56,11 @@ export function faitsDuRapport(dossier: Dossier): Fait[] {
 
   for (const rapprochement of dossier.analyse?.rapprochements ?? []) {
     ajouter('rapprochement', rapprochement.libelle)
+    // Les trois axes doivent survivre au passage sur le papier : un livrable
+    // qui ne porterait que le badge aurait perdu de quoi le justifier (§8).
+    ajouter('rapprochement — statut', LIBELLE_STATUT_AFFICHE[rapprochement.statut])
     ajouter('rapprochement — niveau', LIBELLE_PREUVE[rapprochement.niveau])
+    ajouter('rapprochement — gravité', LIBELLE_GRAVITE[rapprochement.gravite])
     if (rapprochement.chiffrage !== null) {
       ajouter('rapprochement — chiffrage', rapprochement.chiffrage)
     }

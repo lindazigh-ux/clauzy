@@ -21,10 +21,13 @@ import { reconnaitreDans, satisfaite, type Reconnaissance } from '../garanties/r
 import { garantiesDe } from '../garanties/rattachement'
 import {
   ACTION_PAR_CATEGORIE,
-  NiveauPreuve,
-  type Beneficiaire,
-  type Categorie,
-} from '../garanties/types'
+  graviteDe,
+  statutAffiche,
+  type GraviteMetier,
+  type Recommandation,
+  type StatutAffiche,
+} from '../garanties/axes'
+import { NiveauPreuve, type Beneficiaire, type Categorie } from '../garanties/types'
 import { passages, type DocumentSource } from './ancrage'
 import { enMois, extraireValeurs, type ValeurExtraite } from './extracteurs'
 
@@ -66,13 +69,17 @@ export type Rapprochement = {
    */
   readonly chiffrage: string | null
   /**
-   * Le geste que ce niveau appelle POUR CETTE garantie.
+   * Le geste que ce niveau appelle POUR CETTE garantie — code et formulation.
    *
    * Il vient du domaine, jamais de l'affichage : la meme phrase se retrouvait
    * recopiee dans le poste de travail, dans le Word et dans le rapport client,
    * et les trois pouvaient deriver. Elle n'existe plus qu'ici.
    */
-  readonly action: string
+  readonly recommandation: Recommandation
+  /** Ce que le defaut coute — axe distinct du niveau de preuve (§6). */
+  readonly gravite: GraviteMetier
+  /** Le badge de l'interface, deduit des trois axes. Ne les remplace jamais (§8). */
+  readonly statut: StatutAffiche
 }
 
 /**
@@ -83,7 +90,7 @@ export type Rapprochement = {
  * souscrire reviendrait a faire financer au preneur un bien qui n'est pas le
  * sien.
  */
-const actionPour = (garantieId: string, niveau: NiveauPreuve): string => {
+const recommandationPour = (garantieId: string, niveau: NiveauPreuve): Recommandation => {
   const entree = garantie(garantieId)
   return entree.actions?.[niveau] ?? ACTION_PAR_CATEGORIE[entree.categorie][niveau]
 }
@@ -251,9 +258,24 @@ export function rapprocher(documents: readonly DocumentSource[]): Rapprochement[
           : conclure(garantieId, niveau, auContrat.parQuoi ?? aLAttestation.parQuoi, piecesFournies),
       ecartees: exigence.ecartees,
       chiffrage: comparaison?.resume ?? null,
-      action: actionPour(garantieId, niveau),
+      ...troisAxes(garantieId, entree.categorie, niveau),
     }
   })
+}
+
+/** Les trois axes d'une conclusion, calcules ensemble pour rester coherents. */
+const troisAxes = (
+  garantieId: string,
+  categorie: Categorie,
+  niveau: NiveauPreuve,
+): {
+  readonly recommandation: Recommandation
+  readonly gravite: GraviteMetier
+  readonly statut: StatutAffiche
+} => {
+  const recommandation = recommandationPour(garantieId, niveau)
+  const gravite = graviteDe(categorie, niveau)
+  return { recommandation, gravite, statut: statutAffiche(niveau, gravite, recommandation.action) }
 }
 
 type Contexte = {
@@ -305,7 +327,7 @@ const conclure = (
   const entree = garantie(garantieId)
   switch (niveau) {
     case NiveauPreuve.ETABLIE:
-      return `Exigence de « ${entree.libelle} » retrouvée dans les pièces d’assurance.`
+      return `Couverture de « ${entree.libelle} » retrouvée dans les pièces d’assurance.`
     case NiveauPreuve.JUSTIFICATION_INSUFFISANTE:
       return (
         `« ${entree.libelle} » figure au contrat, mais pas sur l’attestation produite. ` +
@@ -327,7 +349,14 @@ const conclure = (
     case NiveauPreuve.ECART_CONFIRME:
       // La recherche effectuee a son propre champ dans le poste de travail
       // comme dans le rapport : la repeter ici la ferait lire deux fois.
-      return `Exigence de « ${entree.libelle} » non retrouvée dans les pièces produites.`
+      //
+      // Le sujet de la phrase est la COUVERTURE, pas l'exigence : ecrire
+      // « exigence non retrouvee » juste au-dessus de la stipulation citee se
+      // lisait comme si le bail n'exigeait rien.
+      return (
+        `Le bail exige « ${entree.libelle} », et aucune couverture correspondante n’a été ` +
+        `retrouvée dans les pièces produites.`
+      )
   }
 }
 
@@ -353,7 +382,8 @@ export type AppuiGarantie = {
    * libelles on a cherche.
    */
   readonly recherche: readonly string[]
-  readonly action: string
+  readonly recommandation: Recommandation
+  readonly gravite: GraviteMetier
 }
 
 export function appuiPourControle(
@@ -387,7 +417,8 @@ export function appuiPourControle(
     satisfaitePar: meilleur.satisfaitePar,
     conclusion: meilleur.conclusion,
     recherche: meilleur.recherche,
-    action: meilleur.action,
+    recommandation: meilleur.recommandation,
+    gravite: meilleur.gravite,
   }
 }
 

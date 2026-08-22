@@ -62,7 +62,8 @@
   text-transform: lowercase;
 }
 
-.niveau {
+/* Le badge de synthèse : cinq états, déduits des trois axes. */
+.statut {
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -73,36 +74,38 @@
   white-space: nowrap;
 }
 
-.etablie {
+.conforme {
   color: var(--accent-fort);
   background: var(--accent-doux);
   border-color: var(--accent-doux);
 }
 
-/* La justification insuffisante n'est ni un écart ni une conformité : elle a
-   sa propre couleur, faute de quoi elle serait lue comme l'une des deux. */
-.justification {
+/* « À vérifier » n'est ni un écart ni une conformité : il lui faut sa propre
+   couleur, faute de quoi il serait lu comme l'un des deux. */
+.aVerifier {
   color: var(--ambre);
   background: var(--ambre-doux);
   border-color: var(--ambre-ligne);
 }
 
-.probable {
+/* La négociation se joue avec le bailleur, pas avec l'assureur : elle se
+   distingue de ce qui se vérifie sur pièces. */
+.aNegocier {
   color: var(--ardoise);
   background: var(--ardoise-doux);
   border-color: var(--ardoise-ligne);
 }
 
-.nonDemontree {
-  color: var(--muted);
-  background: var(--surface-2);
-  border-color: var(--ligne-forte);
-}
-
-.ecart {
+.critique {
   color: var(--rouge);
   background: var(--rouge-doux);
   border-color: var(--rouge-ligne);
+}
+
+.information {
+  color: var(--muted);
+  background: var(--surface-2);
+  border-color: var(--ligne-forte);
 }
 
 .detail {
@@ -181,6 +184,25 @@
   border-radius: var(--rayon);
   font-size: 0.88rem;
   color: var(--ink);
+}
+
+/* Le geste, en tête : c'est lui qui se regroupe d'un dossier à l'autre —
+   « trois pièces à demander, une clause à négocier ». La phrase l'explique. */
+.geste {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-fort);
+  margin-bottom: 0.35em;
+}
+
+.aupresDe {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--faint);
 }
 
 @media (max-width: 640px) {
