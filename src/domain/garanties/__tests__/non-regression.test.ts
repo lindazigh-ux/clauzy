@@ -121,3 +121,48 @@ describe('la nomenclature elle-même', () => {
     expect(fautifs, 'ajouter \\b autour des mots isolés').toEqual([])
   })
 })
+
+/**
+ * Les trois mécanismes que le Golden Dataset a rendus nécessaires.
+ *
+ * Ils sont déjà couverts par les cinquante dossiers, mais indirectement : un
+ * dossier échoue « quelque part ». Ici ils sont nommés, isolés, et lisibles —
+ * pour qu'un lecteur sache qu'ils existent avant d'écrire un motif.
+ */
+describe('les mécanismes de lecture fine', () => {
+  it('une négation annule la reconnaissance, elle ne l’affaiblit pas', () => {
+    // Le signal de négation abaisse la confiance de 35 % ; sur une clause qui
+    // EXONÈRE, il en reste bien assez pour conclure à tort.
+    const exoneration =
+      'Le Preneur n’est pas tenu d’assurer l’immeuble, dont l’assurance demeure à la charge du Bailleur'
+    expect(reconnues(exoneration, 'OBLIGATION')).not.toContain('ASSURANCE_IMMEUBLE_BAILLEUR')
+
+    const transfert = 'Le Preneur assurera l’immeuble appartenant au Bailleur'
+    expect(reconnues(transfert, 'OBLIGATION')).toContain('ASSURANCE_IMMEUBLE_BAILLEUR')
+  })
+
+  it('deux obligations coordonnées dans une phrase en font deux, pas une', () => {
+    const deux =
+      'Le Preneur garantira les risques locatifs ainsi que le vol et le vandalisme des biens garnissant les locaux'
+    const lues = reconnues(deux, 'OBLIGATION')
+    expect(lues).toContain('RISQUES_LOCATIFS')
+    expect(lues).toContain('DOMMAGES_BIENS_PRENEUR')
+  })
+
+  it('une subordination qui DÉCRIT la garantie n’en crée pas une seconde', () => {
+    // Le pendant du cas précédent : « couvrant les dommages causés aux tiers »
+    // définit la RC exploitation, il n'exige pas un recours des voisins.
+    const une =
+      'Le Preneur justifiera d’une responsabilité civile exploitation couvrant les dommages causés aux tiers du fait de son activité'
+    const lues = reconnues(une, 'OBLIGATION')
+    expect(lues).toContain('RC_EXPLOITATION')
+    expect(lues).not.toContain('RECOURS_VOISINS_TIERS')
+  })
+
+  it('« vétusté déduite » ne satisfait pas une exigence de valeur à neuf', () => {
+    expect(reconnues('Indemnisation en valeur vénale, vétusté déduite', 'COUVERTURE')).not.toContain(
+      'VALEUR_A_NEUF',
+    )
+    expect(reconnues('Indemnisation en valeur à neuf', 'COUVERTURE')).toContain('VALEUR_A_NEUF')
+  })
+})

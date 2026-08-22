@@ -76,9 +76,18 @@ export const GARANTIES_FONDAMENTALES: Controle[] = [
       {
         // Une obligation d'assurer les locaux qui ne NOMME pas la garantie :
         // c'est l'ambiguite que ce controle sert a lever.
+        //
+        // Le sujet n'est plus exige dans le motif : les baux logent souvent
+        // l'obligation dans une enumeration — « Le Preneur devra : … c) assurer
+        // les locaux loués… » — et « preneur » se trouve alors sur une autre
+        // ligne. Cherchant le sujet, le controle ratait la clause.
         pattern:
-          /(?:preneur|locataire)[^.\n\r]{0,100}(?:devra |doit |s.oblige [àa] )?(?:assurer|faire assurer)[^.\n\r]{0,60}(?:les\s+)?(?:locaux|lieux|biens lou[ée]s)/i,
+          /\bassure\w*\s+(?:les\s+)?(?:locaux lou[ée]s|lieux lou[ée]s|biens lou[ée]s|locaux|lieux)\b/i,
         libelle: 'obligation d’assurer « les locaux », sans qualification',
+        // Et si la meme stipulation NOMME la garantie, il n'y a plus d'ambiguite
+        // a lever : « faire assurer les locaux loués contre les risques
+        // locatifs » est une redaction correcte, ancienne mais correcte.
+        exclut: [/risques? locatifs?|responsabilit[ée] locative|responsabilit[ée] civile occupant/i],
       },
     ],
     detecteursCouverture: [
@@ -164,7 +173,11 @@ export const GARANTIES_FONDAMENTALES: Controle[] = [
       { pattern: /valeur [àa] neuf|sans (?:d[ée]duction de )?v[ée]tust[ée]|reconstruction [àa] neuf/i },
     ],
     detecteursCouverture: [
-      { pattern: /valeur [àa] neuf|v[ée]tust[ée] d[ée]duite|reconstruction [àa] neuf/i },
+      // « vétusté déduite » disait l'inverse de « valeur à neuf », et le
+      // contrôle le comptait comme une couverture : le bail exigeait le neuf,
+      // la police indemnisait la valeur vénale, et le rapport concluait à la
+      // conformité. C'est le faux négatif le plus coûteux du référentiel.
+      { pattern: /valeur [àa] neuf|reconstruction [àa] neuf|sans (?:d[ée]duction de )?v[ée]tust[ée]/i },
     ],
   },
 ];

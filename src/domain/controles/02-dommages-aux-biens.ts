@@ -29,7 +29,17 @@ export const DOMMAGES_AUX_BIENS: Controle[] = [
       // ce que « . » excluait : « preneur » revient des centaines de
       // fois dans un bail, et chaque occurrence déclenchait une exploration
       // 220 x 220. Une stipulation ne franchit pas un point.
-      { pattern: /preneur[^.\n\r\u2028\u2029]{0,220}(?:assur|garant|prend à sa charge)[^.\n\r\u2028\u2029]{0,220}(?:façades?|vitrines?|portes?|fenêtres?|volets?|toiture|structure|clos et couvert|immeuble)/i },
+      {
+        pattern: /preneur[^.\n\r\u2028\u2029]{0,220}(?:assur|garant|prend à sa charge)[^.\n\r\u2028\u2029]{0,220}(?:façades?|vitrines?|portes?|fenêtres?|volets?|toiture|structure|clos et couvert|immeuble)/i,
+        // « Le Preneur n'est pas tenu d'assurer l'immeuble » porte tous les
+        // mots d'un transfert abusif et dit l'inverse. Alerter sur une clause
+        // PROTECTRICE est le faux positif le plus cher du référentiel : il
+        // envoie négocier ce qui est déjà acquis.
+        exclut: [
+          /(?:n.est pas tenu|n.a pas [àa]|ne sera pas tenu|n.aura pas [àa])\s+(?:de\s+|d.)?(?:faire )?assur/i,
+          /demeure [àa] la charge (?:du|de la|des) bailleur|reste [àa] la charge (?:du|de la|des) bailleur|[àa] la charge exclusive du bailleur/i,
+        ],
+      },
     ],
     detecteursCouverture: [
       { pattern: /(?:bâtiment|immeuble|clos et couvert|façade|toiture).{0,140}(?:garanti|assuré|couvert)/i },
@@ -51,7 +61,14 @@ export const DOMMAGES_AUX_BIENS: Controle[] = [
     responsable: Responsable.IMMOBILIER_ET_ASSURANCE,
     preuveCloture: 'Inventaire valorisé et tableau de garanties concordants.',
     detecteursObligation: [
-      { pattern: /biens appartenant au preneur|matériels?|marchandises?|stocks?|aménagements? du preneur|contenu des locaux/i },
+      {
+        pattern: /biens appartenant au preneur|matériels?|marchandises?|stocks?|aménagements? du preneur|contenu des locaux/i,
+        // « matériel informatique » dans une clause de bris de machine faisait
+        // conclure à un défaut d'assurance des biens propres, alors que la
+        // police portait précisément la garantie demandée. GAR-04 traite ce
+        // sujet ; DAB-02 n'a pas à le doubler.
+        exclut: [/bris de machines?|tous risques? informatiques?/i],
+      },
     ],
     detecteursCouverture: [
       { pattern: /matériels?|marchandises?|stocks?|aménagements?|contenu professionnel|mobilier/i },
@@ -161,7 +178,15 @@ export const DOMMAGES_AUX_BIENS: Controle[] = [
     responsable: Responsable.IMMOBILIER,
     preuveCloture: 'Chaque catégorie de biens est rattachée à son propriétaire dans le bail.',
     detecteursObligation: [
-      { pattern: /preneur[^.\n\r\u2028\u2029]{0,140}(?:assur|garant)[^.\n\r\u2028\u2029]{0,80}(?:tous les|l.ensemble des|les)\s+(?:biens|installations|équipements|aménagements)/i },
+      {
+        pattern: /preneur[^.\n\r\u2028\u2029]{0,140}(?:assur|garant)[^.\n\r\u2028\u2029]{0,80}(?:tous les|l.ensemble des|les)\s+(?:biens|installations|équipements|aménagements)/i,
+        // Ce contrôle reproche à la clause de ne PAS distinguer le propriétaire
+        // des biens. Quand elle le distingue expressément — « à l'exception des
+        // biens appartenant au Bailleur » — il n'a plus d'objet.
+        exclut: [
+          /[àa] l.exception des biens (?:appartenant au|du) bailleur|hormis les biens (?:appartenant au|du) bailleur|dont (?:il est|le preneur est) propriétaire/i,
+        ],
+      },
     ],
     detecteursCouverture: [
       { pattern: /(?:biens|installations|équipements|aménagements).{0,120}(?:appartenant à l.assuré|propres à l.assuré|dont il a la garde)/i },

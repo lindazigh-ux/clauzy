@@ -139,10 +139,12 @@ const decrire = (valeur: ValeurExtraite): string => {
 }
 
 const comparer = (
+  garantieId: string,
   exigence: Reconnaissance | null,
   couverture: Reconnaissance | null,
 ): Comparaison | null => {
   if (exigence === null || couverture === null) return null
+  const plafond = garantie(garantieId).sensChiffrage === 'plafond'
 
   for (const nature of ['montant_eur', 'duree', 'pourcentage'] as const) {
     const exige = valeurUnique(exigence.stipulation.texte, nature)
@@ -158,8 +160,12 @@ const comparer = (
           : null
 
     return {
-      resume: `${decrire(exige)} exigés · ${decrire(soutenu)} soutenus`,
-      insuffisant: chiffres !== null && chiffres.droite < chiffres.gauche,
+      resume: plafond
+        ? `${decrire(exige)} au maximum · ${decrire(soutenu)} souscrits`
+        : `${decrire(exige)} exigés · ${decrire(soutenu)} soutenus`,
+      insuffisant:
+        chiffres !== null &&
+        (plafond ? chiffres.droite > chiffres.gauche : chiffres.droite < chiffres.gauche),
     }
   }
   return null
@@ -227,7 +233,7 @@ export function rapprocher(documents: readonly DocumentSource[]): Rapprochement[
 
     // Le libellé peut correspondre et le montant manquer : une garantie
     // présente mais insuffisante reste un écart.
-    const comparaison = comparer(exigence, trouvee)
+    const comparaison = comparer(garantieId, exigence, trouvee)
 
     const niveau =
       comparaison?.insuffisant === true && contratFourni

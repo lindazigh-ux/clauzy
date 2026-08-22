@@ -89,6 +89,16 @@ export type Motif = {
   /** Si l'un de ces motifs correspond dans la meme stipulation, celui-ci ne compte pas. */
   readonly exclut?: readonly RegExp[]
   /**
+   * Conditions à vérifier dans la stipulation, sans élargir la ZONE reconnue.
+   *
+   * « biens garnissant les locaux » n'est une obligation d'assurance que si la
+   * phrase porte un verbe d'assurance. Écrire cette exigence dans le `pattern`
+   * l'étirerait du verbe au complément — et la préséance verrait alors un
+   * recouvrement avec toute autre garantie nommée entre les deux, dans une
+   * phrase qui en énumère deux.
+   */
+  readonly contexte?: readonly RegExp[]
+  /**
    * Le motif NOMME la garantie, il ne la paraphrase pas.
    *
    * La distinction commande la preseance. « Les risques locatifs ainsi que le
@@ -102,6 +112,18 @@ export type Motif = {
    */
   readonly expres?: boolean
 }
+
+/**
+ * Dans quel sens un chiffre du bail doit être lu.
+ *
+ * `plancher` — le bail fixe un minimum : 8 000 000 € exigés, 3 000 000 €
+ * souscrits, c'est un écart. C'est le cas de presque toutes les garanties.
+ *
+ * `plafond` — le bail fixe un maximum, et l'inégalité s'inverse : une franchise
+ * plafonnée à 1 000 € et souscrite à 5 000 € est un écart, alors qu'un moteur
+ * qui compare « souscrit < exigé » y voit une couverture confortable.
+ */
+export type SensChiffrage = 'plancher' | 'plafond'
 
 export type Garantie = {
   /**
@@ -123,6 +145,8 @@ export type Garantie = {
   readonly motifsCouverture: readonly Motif[]
   /** Les confusions frequentes, et la question qui tranche. */
   readonly confusions: readonly Confusion[]
+  /** Sens de lecture d'un montant exigé. `plancher` par défaut. */
+  readonly sensChiffrage?: SensChiffrage
   /**
    * Recommandation propre a cette garantie, quand celle de sa categorie ne
    * convient pas. Renseignee au cas par cas, jamais par confort.

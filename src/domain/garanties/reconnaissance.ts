@@ -84,13 +84,47 @@ export function stipulations(texte: string, decalage = 0): Stipulation[] {
   return resultat
 }
 
-/** Un motif repond-il, et son exclusion joue-t-elle ? */
-const repond = (motif: Motif, texte: string): boolean => {
-  if (!motif.pattern.test(texte)) return false
+/** Ou, dans la stipulation, un motif a-t-il repondu. Null s'il n'a pas repondu. */
+type Zone = { readonly debut: number; readonly fin: number }
+
+const repond = (motif: Motif, texte: string): Zone | null => {
+  const trouve = motif.pattern.exec(texte)
+  if (trouve === null) return null
   // L'exclusion s'evalue dans la STIPULATION : c'est ce qui distingue
   // « assurer les locaux loués » de « assurer l'immeuble du bailleur ».
-  return !(motif.exclut ?? []).some((exclusion) => exclusion.test(texte))
+  if ((motif.exclut ?? []).some((exclusion) => exclusion.test(texte))) return null
+  if (!(motif.contexte ?? []).every((condition) => condition.test(texte))) return null
+  return { debut: trouve.index, fin: trouve.index + trouve[0].length }
 }
+
+/**
+ * Ce qui, entre deux reconnaissances, annonce une SECONDE obligation.
+ *
+ * Une coordination enumere : « les risques locatifs AINSI QUE le vol ». Une
+ * subordination decrit : « la responsabilité civile exploitation COUVRANT les
+ * dommages causés aux tiers » — un seul engagement, defini par sa portee.
+ */
+const COORDINATION = /\bainsi qu|\bet\b|\bou\b|;/i
+
+/**
+ * Les deux motifs lisent-ils le MEME passage ?
+ *
+ * Oui s'ils se recouvrent — c'est le cas franc. Oui aussi si rien, entre eux,
+ * n'annonce une seconde obligation : la lecture reste unique, et la preseance
+ * doit departager. Non s'ils sont coordonnes : la phrase en enumere deux, et
+ * ecarter la seconde ferait disparaitre une exigence entiere.
+ */
+const memePassage = (a: readonly Zone[], b: readonly Zone[], texte: string): boolean =>
+  a.some((zoneA) =>
+    b.some((zoneB) => {
+      if (zoneA.debut < zoneB.fin && zoneB.debut < zoneA.fin) return true
+      const entre = texte.slice(
+        Math.min(zoneA.fin, zoneB.fin),
+        Math.max(zoneA.debut, zoneB.debut),
+      )
+      return !COORDINATION.test(entre)
+    }),
+  )
 
 /** OU bruite : deux indices faibles valent mieux qu'un, sans jamais atteindre 100 par accident. */
 const combiner = (poids: readonly number[]): number => {
@@ -104,6 +138,8 @@ type Brute = {
   motifs: string[]
   /** Au moins un motif NOMMAIT la garantie, au lieu de la paraphraser. */
   expres: boolean
+  /** Ou la reconnaissance a eu lieu dans la stipulation. */
+  zones: Zone[]
 }
 
 export const reconnaitreDans = (
@@ -114,16 +150,19 @@ export const reconnaitreDans = (
 
   for (const entree of NOMENCLATURE) {
     const motifs = cote === 'OBLIGATION' ? entree.motifsObligation : entree.motifsCouverture
-    const repondus = motifs.filter((motif) => repond(motif, stipulation.texte))
+    const repondus = motifs
+      .map((motif) => ({ motif, zone: repond(motif, stipulation.texte) }))
+      .filter((r): r is { motif: Motif; zone: Zone } => r.zone !== null)
     if (repondus.length === 0) continue
 
     brutes.push({
       garantie: entree,
-      force: combiner(repondus.map((motif) => motif.poids ?? 1)),
+      force: combiner(repondus.map(({ motif }) => motif.poids ?? 1)),
       motifs: repondus.map(
-        (motif, index) => motif.libelle ?? `motif ${index + 1} de « ${entree.libelle} »`,
+        ({ motif }, index) => motif.libelle ?? `motif ${index + 1} de « ${entree.libelle} »`,
       ),
-      expres: repondus.some((motif) => motif.expres === true),
+      expres: repondus.some(({ motif }) => motif.expres === true),
+      zones: repondus.map(({ zone }) => zone),
     })
   }
 
@@ -150,9 +189,16 @@ export const reconnaitreDans = (
       continue
     }
 
-    const rivale = retenues.find((retenue) =>
-      retenue.garantie.confusions.some((c) => c.avec === candidate.garantie.id) ||
-      candidate.garantie.confusions.some((c) => c.avec === retenue.garantie.id),
+    // Une rivale n'en est une que si elle lit LE MEME PASSAGE. « Le Preneur
+    // garantira les risques locatifs ainsi que le vol et le vandalisme des
+    // biens garnissant les locaux » nomme deux obligations coordonnees : la
+    // seconde n'est pas une lecture concurrente de la premiere, et l'ecarter
+    // faisait disparaitre une exigence entiere.
+    const rivale = retenues.find(
+      (retenue) =>
+        (retenue.garantie.confusions.some((c) => c.avec === candidate.garantie.id) ||
+          candidate.garantie.confusions.some((c) => c.avec === retenue.garantie.id)) &&
+        memePassage(retenue.zones, candidate.zones, stipulation.texte),
     )
     if (rivale === undefined) {
       retenues.push(candidate)

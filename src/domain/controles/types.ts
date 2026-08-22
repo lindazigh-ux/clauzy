@@ -94,6 +94,20 @@ export type Detecteur = {
    * qu'un match faible ne produise un ECART affirmé à tort.
    */
   poids?: number;
+  /**
+   * Motifs qui ANNULENT la reconnaissance, évalués sur la stipulation entière.
+   *
+   * Le mécanisme que les garanties avaient déjà et que les contrôles n'avaient
+   * pas. « Le Preneur n'est pas tenu d'assurer l'immeuble » contient tous les
+   * mots d'un transfert abusif et dit exactement l'inverse ; « à l'exception
+   * des biens appartenant au Bailleur » distingue précisément ce que le
+   * contrôle reproche de ne pas distinguer.
+   *
+   * Le signal de négation existant abaisse la confiance ; il ne suffit pas.
+   * Une clause qui exonère expressément n'est pas une clause douteuse : c'est
+   * une clause protectrice, et l'alerter est un faux positif entier.
+   */
+  exclut?: readonly RegExp[];
   /** Libellé lisible, affiché dans l'outil de mise au point du moteur. */
   libelle?: string;
 };

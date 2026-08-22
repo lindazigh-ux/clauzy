@@ -209,6 +209,13 @@ export const NOMENCLATURE: readonly Garantie[] = [
         pattern:
           /(?:preneur|locataire)[^.\n\r]{0,120}(?:assur|garant|souscri|prend à sa charge)[^.\n\r]{0,120}(?:l.immeuble|le b[âa]timent|la structure|le clos et le? couvert|les biens immobiliers)/i,
         libelle: 'le preneur assure l’immeuble',
+        // Une clause qui EXONÈRE le preneur porte les mêmes mots qu'une clause
+        // qui le charge. La reconnaître produirait la conclusion la plus grave
+        // du référentiel sur la stipulation la plus protectrice du bail.
+        exclut: [
+          /(?:n.est pas tenu|n.a pas [àa]|ne sera pas tenu|n.aura pas [àa])\s+(?:de\s+|d.)?(?:faire )?assur/i,
+          /demeure [àa] la charge (?:du|de la|des) bailleur|reste [àa] la charge (?:du|de la|des) bailleur|[àa] la charge exclusive du bailleur/i,
+        ],
       },
       {
         pattern:
@@ -264,6 +271,13 @@ export const NOMENCLATURE: readonly Garantie[] = [
         pattern: /(?:ses biens|biens (?:propres|appartenant au preneur)|contenu des locaux)[^.\n\r]{0,100}(?:assur|garant)/i,
       },
       { pattern: /(?:assur|garant)[^.\n\r]{0,60}(?:ses biens|ses propres biens|son contenu)/i },
+      {
+        // « les biens garnissant les locaux » est LA formule des baux pour
+        // désigner le contenu du preneur. Elle n'était reconnue nulle part, et
+        // une clause entière passait sous silence.
+        pattern: /biens garnissant les (?:locaux|lieux)/i,
+        contexte: [/assur|garant/i],
+      },
     ],
     motifsCouverture: [
       { pattern: /dommages aux biens|contenu professionnel|biens de l.assur[ée]/i },
@@ -566,7 +580,11 @@ export const NOMENCLATURE: readonly Garantie[] = [
       { pattern: /valeur [àa] neuf|sans (?:d[ée]duction de )?v[ée]tust[ée]/i, expres: true },
     ],
     motifsCouverture: [
-      { pattern: /valeur [àa] neuf|v[ée]tust[ée] d[ée]duite|reconstruction [àa] neuf/i, expres: true },
+      // « vétusté déduite » ne SATISFAIT pas une exigence de valeur à neuf :
+      // c'est son contraire exact. Le compter comme une couverture faisait
+      // conclure à la conformité une police qui indemnise en valeur vénale un
+      // bail qui exige le neuf.
+      { pattern: /valeur [àa] neuf|reconstruction [àa] neuf|sans (?:d[ée]duction de )?v[ée]tust[ée]/i, expres: true },
     ],
     confusions: [],
   },
@@ -579,6 +597,10 @@ export const NOMENCLATURE: readonly Garantie[] = [
     neCouvrePas: ['Elle ne se supprime pas par une clause du bail : seule la police la fixe'],
     motifsObligation: [{ pattern: /\bfranchises?\b|reste [àa] charge/i }],
     motifsCouverture: [{ pattern: /\bfranchises?\b|d[ée]duction de/i }],
+    // Un bail qui parle de franchise en fixe un PLAFOND : « ne pourra excéder
+    // 1 000 € ». Lue comme un plancher, une franchise de 5 000 € passait pour
+    // une couverture plus généreuse que demandée.
+    sensChiffrage: 'plafond',
     confusions: [],
   },
   {

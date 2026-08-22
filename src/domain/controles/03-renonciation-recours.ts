@@ -25,7 +25,16 @@ export const RENONCIATION_RECOURS: Controle[] = [
     responsable: Responsable.JURIDIQUE,
     preuveCloture: 'Clause réciproque et confirmations des assureurs.',
     detecteursObligation: [
-      { pattern: /le preneur renonce.{0,180}recours|renonciation.{0,120}(?:preneur|locataire)/i },
+      {
+        pattern: /le preneur renonce.{0,180}recours|renonciation.{0,120}(?:preneur|locataire)/i,
+        // Le contrôle porte sur le DÉFAUT de réciprocité. Une clause où les
+        // deux parties renoncent explicitement l'une contre l'autre est la
+        // rédaction correcte : l'alerter fait revérifier ce qui est bien écrit.
+        // COH-02 reste là pour la réciprocité seulement ANNONCÉE.
+        exclut: [
+          /(?:le\s+)?bailleur\s+et\s+(?:le\s+)?preneur\s+renoncent|renoncent\s+r[ée]ciproquement|(?:le\s+)?bailleur\s+renonce\s+[àa]/i,
+        ],
+      },
     ],
     detecteursCouverture: [
       { pattern: /renonc.{0,140}recours|abandon de recours|dérogation à la subrogation/i },

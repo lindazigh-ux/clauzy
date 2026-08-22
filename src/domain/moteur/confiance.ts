@@ -231,6 +231,10 @@ export function evaluer(
       // ici pour recuperer toutes les occurrences sans modifier le referentiel.
       const motif = new RegExp(detecteur.pattern.source, `${detecteur.pattern.flags.replace('g', '')}g`)
       for (const m of segment.texte.matchAll(motif)) {
+        // Une exclusion s'evalue sur la STIPULATION, pas sur le fragment
+        // trouve : c'est la phrase entiere qui dit « n'est pas tenu de » ou
+        // « a l'exception de », et le fragment, lui, ne le sait pas.
+        if ((detecteur.exclut ?? []).some((exclusion) => exclusion.test(segment.texte))) continue
         aMatche = true
         const debutRelatif = m.index ?? 0
         correspondances.push({
