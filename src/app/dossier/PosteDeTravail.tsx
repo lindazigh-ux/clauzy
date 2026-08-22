@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { NOMBRE_CONTROLES, type Gravite, type Statut } from '@/domain/controles'
+import { StatutAffiche } from '@/domain/garanties/axes'
 import {
   ajouterDocument,
   ajouterObservation,
@@ -39,13 +39,17 @@ import { lancerAnalyse, lireFichier } from '@/lib/analyse/client'
 import { documentsAnalysables, type DocumentImporte, type RoleDocument } from '@/lib/import'
 
 import styles from './dossier.module.css'
+import atelier from './atelier.module.css'
+import { EcranBail } from './ecrans/EcranBail'
+import { EcranConfrontation } from './ecrans/EcranConfrontation'
+import { EcranSynthese, aTraiter } from './ecrans/EcranSynthese'
+import { LIBELLE_SECTION, Rail, type Section } from './ecrans/Rail'
 import { EditeurLigne } from './composants/EditeurLigne'
 import { LecteurDocument } from './composants/LecteurDocument'
 import { Livrable } from './composants/Livrable'
 import { Matrice, Synthese, type FiltreEtat } from './composants/Matrice'
 import { PanneauObservations, PanneauPerimetre } from './composants/Perimetre'
 import { PanneauCoherence } from './composants/Coherence'
-import { PanneauRapprochement } from './composants/Rapprochement'
 import { RapportImprimable } from './composants/RapportImprimable'
 import { Suivi } from './composants/Suivi'
 import { Sauvegarde } from './composants/Sauvegarde'
@@ -73,6 +77,16 @@ export function PosteDeTravail() {
   const [erreursImport, setErreursImport] = useState<readonly string[]>([])
   const [erreurEdition, setErreurEdition] = useState<string | null>(null)
   const [enregistreLe, setEnregistreLe] = useState<string | null>(null)
+  const [section, setSection] = useState<Section>('SYNTHESE')
+  /**
+   * Mode expert (§39).
+   *
+   * Ce qui décrit l'OUTIL — la matrice des 45 contrôles, les identifiants, les
+   * scores de confiance, les lectures écartées — sort de l'expérience
+   * principale et vit ici. Rien n'est supprimé : le praticien garde la main sur
+   * chaque ligne, mais il n'est plus obligé de la voir pour travailler.
+   */
+  const [expert, setExpert] = useState(false)
 
   const travailNonEnregistre =
     dossier.documents.length > 0 && (enregistreLe === null || dossier.majLe > enregistreLe)
@@ -220,185 +234,236 @@ export function PosteDeTravail() {
 
   const aucunDocument = dossier.documents.length === 0
 
+  /**
+   * Les compteurs de la barre disent ce qui APPELLE une action.
+   *
+   * Jamais l'inventaire : « 45 contrôles » n'apparaît pas ici, et « 0 » ne
+   * s'affiche pas non plus — un badge à zéro est du bruit (§43).
+   */
+  const compteurs = useMemo(() => {
+    const points = aTraiter(dossier)
+    const critiques = points.filter((r) => r.statut === StatutAffiche.CRITIQUE).length
+    return {
+      SYNTHESE: { valeur: points.length, alerte: critiques > 0 },
+      CONFRONTATION: { valeur: points.length, alerte: critiques > 0 },
+      CONTRADICTIONS: {
+        valeur: dossier.analyse?.incoherences.length ?? 0,
+        alerte: false,
+      },
+      PIECES: { valeur: dossier.documents.length, alerte: false },
+    }
+  }, [dossier])
+
   return (
     <>
-    <div className={styles.poste}>
-      <header className={styles.barre}>
-        <div className={styles.barreContenu}>
-          <Link href="/" className={styles.marque}>
-            Clauzy
-          </Link>
+      <div className={atelier.atelier}>
+        <Rail
+          active={section}
+          compteurs={compteurs}
+          client={dossier.client.raisonSociale}
+          reference={dossier.reference}
+          expert={expert}
+          onSection={setSection}
+          onExpert={setExpert}
+        />
 
-          <div className={styles.champReference}>
-            <label className={styles.champLabel} htmlFor="reference" style={{ margin: 0 }}>
-              Référence
-            </label>
-            <input
-              id="reference"
-              className={styles.reference}
-              value={dossier.reference}
-              placeholder="D-2026-014"
-              onChange={(e) => setDossier((courant) => majReference(courant, e.target.value))}
-            />
+        <main className={atelier.scene}>
+          <div className={atelier.enTete}>
+            <div>
+              <h1 className={atelier.titreEcran}>{LIBELLE_SECTION[section]}</h1>
+              {/*
+                « 45 contrôles appliqués — 16 écarts, 3 conformes… » décrit
+                l'outil, pas le dossier (§43). Elle reste dans le rapport, où
+                elle prouve l'étendue du travail, et en mode expert. Pas ici.
+              */}
+              {expert && dossier.analyse !== null && (
+                <p className={atelier.sousTitre}>{synthese.phrase}</p>
+              )}
+            </div>
+
+            <div className={atelier.actions}>
+              <button type="button" className={atelier.bouton} onClick={chargerExemple}>
+                Charger un dossier d’exemple
+              </button>
+              <button
+                type="button"
+                className={atelier.boutonPrimaire}
+                onClick={analyser}
+                disabled={aucunDocument || analyseEnCours}
+              >
+                {analyseEnCours ? 'Analyse en cours…' : 'Analyser les pièces'}
+              </button>
+            </div>
           </div>
 
-          <div className={styles.actions}>
-            <button type="button" className={styles.bouton} onClick={chargerExemple}>
-              Charger un dossier d’exemple
-            </button>
-            <button
-              type="button"
-              className={styles.boutonPrimaire}
-              onClick={analyser}
-              disabled={aucunDocument || analyseEnCours}
-            >
-              {analyseEnCours ? 'Analyse en cours…' : 'Analyser les pièces'}
-            </button>
-          </div>
-        </div>
-      </header>
+          {erreurEdition !== null && <p className={atelier.alerte}>{erreurEdition}</p>}
 
-      <main className={styles.corps}>
-        <div className={styles.colonne}>
-          <Sauvegarde
-            dossier={dossier}
-            enregistreLe={enregistreLe}
-            onEnregistre={() => setEnregistreLe(new Date().toISOString())}
-            onCharger={(charge) => {
-              setDossier(charge)
-              setEnregistreLe(charge.majLe)
-              setSelection(null)
-              setErreurEdition(null)
-            }}
-          />
-
-          <ZoneImport
-            documents={dossier.documents}
-            enCours={lectureEnCours}
-            erreurs={erreursImport}
-            onImporter={(fichiers, role) => void importer(fichiers, role)}
-            onRetirer={(id) => setDossier((courant) => retirerDocument(courant, id))}
-          />
-
-          <Synthese
-            synthese={synthese}
-            enjeux={enjeux}
-            filtre={filtre}
-            onFiltrer={setFiltre}
-          />
-
-          {dossier.analyse === null && (
-            <p className={styles.avertissement}>
-              Aucune analyse n’a encore tourné. Les {NOMBRE_CONTROLES} contrôles sont affichés « à vérifier
-              manuellement » — c’est l’état exact du dossier, pas une absence de résultat.
-            </p>
-          )}
-
-          <Matrice
-            lignes={lignes}
-            filtre={filtre}
-            selection={selection}
-            onSelectionner={(id) => setSelection(id === selection ? null : id)}
-          />
-
-          {dossier.analyse !== null && (
-            <PanneauRapprochement rapprochements={dossier.analyse.rapprochements} />
-          )}
-
-          {dossier.analyse !== null && (
-            <PanneauCoherence incoherences={dossier.analyse.incoherences} />
-          )}
-
-          <LecteurDocument
-            documents={dossier.documents}
-            controleSuggere={selection}
-            onRattacher={(controleId: string, rattachement: Rattachement) =>
-              tenter(() => rattacher(dossier, controleId, AUTEUR_PAR_DEFAUT, rattachement))
-            }
-          />
-        </div>
-
-        <div className={`${styles.colonne} ${styles.colonneInspecteur}`}>
-          {ligneActive === null ? (
-            <section className={styles.carte}>
-              <h2>Reprendre une ligne</h2>
-              <p className={styles.vide}>
-                Choisissez un contrôle dans la matrice pour reformuler son analyse, changer sa
-                gravité, réécrire la rédaction proposée, ou l’écarter comme faux positif.
-              </p>
-            </section>
-          ) : (
-            <EditeurLigne
-              key={ligneActive.controle.id}
-              ligne={ligneActive}
-              erreur={erreurEdition}
-              onReecrire={(champs) =>
-                tenter(() => reecrire(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, champs))
-              }
-              onGravite={(gravite: Gravite) =>
-                tenter(() =>
-                  forcerGravite(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, gravite),
-                )
-              }
-              onEcarter={(motif) =>
-                tenter(() => ecarter(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, motif))
-              }
-              onReprendre={() =>
-                tenter(() => reprendre(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT))
-              }
-              onForcerStatut={(statut: Statut, motif: string) =>
-                tenter(() =>
-                  forcerStatut(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, statut, motif),
-                )
-              }
-              onDetacher={(index) =>
-                tenter(() =>
-                  detacher(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, index),
-                )
-              }
+          {section === 'SYNTHESE' && (
+            <EcranSynthese
+              dossier={dossier}
+              analyseEnCours={analyseEnCours}
+              onAnalyser={() => void analyser()}
+              onPieces={() => setSection('PIECES')}
+              onTout={() => setSection('CONFRONTATION')}
             />
           )}
 
-          <Suivi
-            dossier={dossier}
-            onSuivi={(suivi: Partial<SuiviDossier>) =>
-              setDossier((courant) => majSuivi(courant, suivi))
-            }
-            onBasculer={(jalon: IdJalon) => setDossier((courant) => basculerJalon(courant, jalon))}
-          />
+          {section === 'BAIL' && (
+            <EcranBail dossier={dossier} expert={expert} onPieces={() => setSection('PIECES')} />
+          )}
 
-          <PanneauPerimetre
-            perimetre={dossier.perimetre}
-            onChanger={(modifications: Partial<Perimetre>) =>
-              setDossier((courant) => majPerimetre(courant, modifications))
-            }
-          />
+          {section === 'CONFRONTATION' && (
+            <EcranConfrontation dossier={dossier} onPieces={() => setSection('PIECES')} />
+          )}
 
-          <PanneauObservations
-            observations={dossier.observations}
-            onAjouter={(observation) =>
-              setDossier((courant) => ajouterObservation(courant, observation))
-            }
-            onRetirer={(id) => setDossier((courant) => retirerObservation(courant, id))}
-          />
+          {/*
+            Trois écrans attendent encore leur refonte (phase 2 du §17-39). Ils
+            portent les composants existants tels quels : le produit reste
+            entier, et la refonte n'a pas à tout casser d'un coup.
+          */}
+          {section === 'CONTRADICTIONS' && (
+            <div className={atelier.heritage}>
+              <PanneauCoherence incoherences={dossier.analyse?.incoherences ?? []} />
+            </div>
+          )}
 
-          <Livrable
-            dossier={dossier}
-            onCabinet={(cabinet: Partial<Cabinet>) =>
-              setDossier((courant) => majCabinet(courant, cabinet))
-            }
-            onClient={(client: Partial<FicheClient>) =>
-              setDossier((courant) => majClient(courant, client))
-            }
-          />
-        </div>
-      </main>
-    </div>
+          {section === 'PIECES' && (
+            <div className={atelier.heritage}>
+              <ZoneImport
+                documents={dossier.documents}
+                enCours={lectureEnCours}
+                erreurs={erreursImport}
+                onImporter={(fichiers, role) => void importer(fichiers, role)}
+                onRetirer={(id) => setDossier((courant) => retirerDocument(courant, id))}
+              />
+              <Sauvegarde
+                dossier={dossier}
+                enregistreLe={enregistreLe}
+                onEnregistre={() => setEnregistreLe(new Date().toISOString())}
+                onCharger={(charge) => {
+                  setDossier(charge)
+                  setEnregistreLe(charge.majLe)
+                  setSelection(null)
+                  setErreurEdition(null)
+                }}
+              />
+              <LecteurDocument
+                documents={dossier.documents}
+                controleSuggere={selection}
+                onRattacher={(controleId: string, rattachement: Rattachement) =>
+                  tenter(() => rattacher(dossier, controleId, AUTEUR_PAR_DEFAUT, rattachement))
+                }
+              />
+            </div>
+          )}
 
-    {/*
-      Frere du poste de travail, jamais son enfant : a l'impression le poste est
-      masque, et un rapport range dedans disparaitrait avec lui.
-    */}
+          {section === 'RAPPORT' && (
+            <div className={atelier.heritage}>
+              <Livrable
+                dossier={dossier}
+                onCabinet={(cabinet: Cabinet | Partial<Cabinet>) =>
+                  setDossier((courant) => majCabinet(courant, cabinet))
+                }
+                onClient={(client: Partial<FicheClient>) =>
+                  setDossier((courant) => majClient(courant, client))
+                }
+              />
+              <PanneauPerimetre
+                perimetre={dossier.perimetre}
+                onChanger={(modifications: Partial<Perimetre>) =>
+                  setDossier((courant) => majPerimetre(courant, modifications))
+                }
+              />
+              <PanneauObservations
+                observations={dossier.observations}
+                onAjouter={(observation) =>
+                  setDossier((courant) => ajouterObservation(courant, observation))
+                }
+                onRetirer={(id) => setDossier((courant) => retirerObservation(courant, id))}
+              />
+              <Suivi
+                dossier={dossier}
+                onSuivi={(suivi: Partial<SuiviDossier>) =>
+                  setDossier((courant) => majSuivi(courant, suivi))
+                }
+                onBasculer={(jalon: IdJalon) =>
+                  setDossier((courant) => basculerJalon(courant, jalon))
+                }
+              />
+            </div>
+          )}
+
+          {/*
+            Le mode expert n'est pas un septième écran : il AJOUTE au bas de
+            celui qu'on regarde ce que le moteur a produit, ligne par ligne, et
+            de quoi le reprendre à la main. Le praticien reste décisionnaire
+            (§39) — mais il ne travaille plus dans la matrice.
+          */}
+          {expert && (
+            <div className={atelier.heritage}>
+              <hr />
+              {dossier.analyse === null && (
+                <p className={styles.avertissement}>
+                  Aucune analyse n’a encore tourné. Les {NOMBRE_CONTROLES} contrôles sont affichés
+                  « à vérifier manuellement » — c’est l’état exact du dossier, pas une absence de
+                  résultat.
+                </p>
+              )}
+              <Synthese synthese={synthese} enjeux={enjeux} filtre={filtre} onFiltrer={setFiltre} />
+              <Matrice
+                lignes={lignes}
+                filtre={filtre}
+                selection={selection}
+                onSelectionner={(id) => setSelection(id === selection ? null : id)}
+              />
+              {ligneActive !== null && (
+                <EditeurLigne
+                  key={ligneActive.controle.id}
+                  ligne={ligneActive}
+                  erreur={erreurEdition}
+                  onReecrire={(champs) =>
+                    tenter(() =>
+                      reecrire(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, champs),
+                    )
+                  }
+                  onGravite={(gravite: Gravite) =>
+                    tenter(() =>
+                      forcerGravite(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, gravite),
+                    )
+                  }
+                  onEcarter={(motif) =>
+                    tenter(() => ecarter(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, motif))
+                  }
+                  onReprendre={() =>
+                    tenter(() => reprendre(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT))
+                  }
+                  onForcerStatut={(statut: Statut, motif: string) =>
+                    tenter(() =>
+                      forcerStatut(
+                        dossier,
+                        ligneActive.controle.id,
+                        AUTEUR_PAR_DEFAUT,
+                        statut,
+                        motif,
+                      ),
+                    )
+                  }
+                  onDetacher={(index) =>
+                    tenter(() =>
+                      detacher(dossier, ligneActive.controle.id, AUTEUR_PAR_DEFAUT, index),
+                    )
+                  }
+                />
+              )}
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/*
+        Frere du poste de travail, jamais son enfant : a l'impression le poste
+        est masque, et un rapport range dedans disparaitrait avec lui.
+      */}
     <RapportImprimable dossier={dossier} />
     </>
   )

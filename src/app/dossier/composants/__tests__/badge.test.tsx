@@ -23,7 +23,7 @@ import {
 import { LIBELLE_PREUVE } from '@/domain/garanties/types'
 import { dossierDeReference } from '@/domain/rapport/__tests__/fixture'
 
-import { PanneauRapprochement } from '../Rapprochement'
+import { EcranConfrontation } from '../../ecrans/EcranConfrontation'
 import { RapportImprimable } from '../RapportImprimable'
 
 const dossier = dossierDeReference()
@@ -44,7 +44,9 @@ describe('le badge de synthèse', () => {
   })
 
   it('le poste de travail affiche le statut calculé par le domaine', () => {
-    const rendu = texteDe(renderToStaticMarkup(<PanneauRapprochement rapprochements={rapprochements} />))
+    const rendu = texteDe(
+      renderToStaticMarkup(<EcranConfrontation dossier={dossier} onPieces={() => {}} />),
+    )
     for (const rapprochement of rapprochements) {
       expect(rendu).toContain(LIBELLE_STATUT_AFFICHE[rapprochement.statut])
     }
@@ -80,8 +82,10 @@ describe('le badge de synthèse', () => {
     const ouvert = rapprochements[0]
     expect(ouvert).toBeDefined()
     if (ouvert === undefined) return
-    const rendu = texteDe(renderToStaticMarkup(<PanneauRapprochement rapprochements={[ouvert]} />))
-    // Le détail est replié au premier rendu : le badge, lui, est toujours là.
+    const rendu = texteDe(
+      renderToStaticMarkup(<EcranConfrontation dossier={dossier} onPieces={() => {}} />),
+    )
+    // Le geste est replié au premier rendu : le badge, lui, est toujours là.
     expect(rendu).toContain(LIBELLE_STATUT_AFFICHE[ouvert.statut])
     expect(Object.values(LIBELLE_ACTION)).toContain(
       LIBELLE_ACTION[ouvert.recommandation.action],

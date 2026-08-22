@@ -34,6 +34,14 @@ export type Stipulation = {
   readonly fin: number
   readonly article?: string | null
   readonly intitule?: string | null
+  /**
+   * Le document d'où vient la stipulation, quand elle vient de `moteur/ancrage`.
+   *
+   * `debut` et `fin` sont des offsets DANS CE DOCUMENT. Sans son identifiant,
+   * ils ne désignent rien — et l'écran qui surligne le bail ne saurait pas
+   * lequel surligner.
+   */
+  readonly documentId?: string
 }
 
 export type Reconnaissance = {

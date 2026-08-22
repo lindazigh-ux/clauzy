@@ -41,6 +41,8 @@ import {
 export * from './types'
 export * from './suivi'
 export * from './fichier'
+// En bas de fichier plutot qu'ici : `recit` importe `preconisations`, defini
+// plus loin dans ce module. Un re-export en tete creerait un cycle a l'execution.
 
 const maintenant = (): string => new Date().toISOString()
 
@@ -423,3 +425,5 @@ export function preconisations(dossier: Dossier): LigneRapport[] {
       return b.gravite - a.gravite
     })
 }
+
+export { recit, type Recit } from './recit'
